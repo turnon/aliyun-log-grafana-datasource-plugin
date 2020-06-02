@@ -1,6 +1,6 @@
 {
   "name": "aliyun-log-service",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "Aliyun log service datasource (backend version)",
   "private": true,
   "main": "index.js",
