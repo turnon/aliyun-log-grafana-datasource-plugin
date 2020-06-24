@@ -67,7 +67,7 @@ Query 类型变量
 
 如需翻页，要设置固定的时间范围，每页最多展示100条
 
-![](/img/logs.jpg)
+![](https://raw.githubusercontent.com/aliyun/aliyun-log-grafana-datasource-plugin/master/img/logs.jpg)
 
 ### 设置流图
 
@@ -80,7 +80,7 @@ Query 设置样例为
 * | select to_unixtime(time) as time,status,count from (select time_series(__time__, '1m', '%Y-%m-%d %H:%i', '0')  as time,status,count(*) as count from log group by status,time order by time limit 10000)
 ```
 
-![](/img/demo1.png)
+![](https://raw.githubusercontent.com/aliyun/aliyun-log-grafana-datasource-plugin/master/img/demo1.png)
 
 ### 设置饼图
 
@@ -93,7 +93,7 @@ Query 设置样例为
 $hostname | select count(1) as pv ,method group by method
 ```
 
-![](/img/demo2.png)
+![](https://raw.githubusercontent.com/aliyun/aliyun-log-grafana-datasource-plugin/master/img/demo2.png)
 
 ### 设置表格
 
@@ -142,11 +142,11 @@ Metric Field 设置为 `pv`
 
 样例如下:
 
-![](/img/demo3.png)
+![](https://raw.githubusercontent.com/aliyun/aliyun-log-grafana-datasource-plugin/master/img/demo3.png)
 
 添加告警面板:
 
-![](/img/demo4.png)
+![](https://raw.githubusercontent.com/aliyun/aliyun-log-grafana-datasource-plugin/master/img/demo4.png)
 
 - 其中图表上红线代表设置的阈值, 点击右侧可以上下拖动
 - Evaluate every `1m` for `5m`, 代表计算每分钟的结果, 连续五分钟超过阈值告警
@@ -163,6 +163,20 @@ Metric Field 设置为 `pv`
 在 linux 日志目录是 /var/log/grafana
 
 - aliyun-log-plugin_linux_amd64: permission denied , 需要授予aliyun-log-plugin_linux_amd64执行权限
+
+
+## grafana 7.0
+
+参考 [Backend plugins: Unsigned external plugins should not be loaded by default #24027](https://github.com/grafana/grafana/issues/24027)
+
+修改grafana配置文件
+
+在mac上为 `/usr/local/etc/grafana/grafana.ini`
+
+在`[plugins]`标签下设置参数
+
+`allow_loading_unsigned_plugins = aliyun-log-service-datasource,grafana-log-service-datasource`
+
 
 
 

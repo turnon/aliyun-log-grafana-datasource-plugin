@@ -73,7 +73,7 @@ The Query sample is set to
 * | select to_unixtime(time) as time,status,count from (select time_series(__time__, '1m', '%Y-%m-%d %H:%i', '0')  as time,status,count(*) as count from log group by status,time order by time limit 10000)
 ```
 
-![](/img/demo1.png)
+![](https://raw.githubusercontent.com/aliyun/aliyun-log-grafana-datasource-plugin/master/img/demo1.png)
 
 ### Pie
 
@@ -86,7 +86,7 @@ The Query sample is set to
 $hostname | select count(1) as pv ,method group by method
 ```
 
-![](/img/demo2.png)
+![](https://raw.githubusercontent.com/aliyun/aliyun-log-grafana-datasource-plugin/master/img/demo2.png)
 
 ### Table
 
@@ -133,17 +133,22 @@ In the alert notification panel, select New channel to add
 
 A sample of:
 
-![](/img/demo3.png)
+![](https://raw.githubusercontent.com/aliyun/aliyun-log-grafana-datasource-plugin/master/img/demo3.png)
 
 Add the alert panel:
 
-![](/img/demo4.png)
+![](https://raw.githubusercontent.com/aliyun/aliyun-log-grafana-datasource-plugin/master/img/demo4.png)
 
 - The red line on the chart represents the set threshold. Click on the right side and drag it up and down.
 - Evaluate every `1m` for `5m`, Is the result calculated every minute, and the threshold is exceeded for five consecutive minutes.
 - After setting for, if the state exceeds the threshold value and changes from Ok to Pending, the alarm will not be triggered. After continuously exceeding the threshold value for a period of time, the alarm will be sent. If the state changes from Pending to Alerting, the alarm will only be notified once.
 - WHEN `avg ()` OF `query (B, 5m, now)` IS ABOVE `89`, That means line B has an average of more than 89 alarms in the last five minutes.
 - Add notification mode and notification information under Notifications.
+
+
+## grafana 7.0
+
+[Backend plugins: Unsigned external plugins should not be loaded by default #24027](https://github.com/grafana/grafana/issues/24027)
 
 
 ## Contributors
