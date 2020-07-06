@@ -77,7 +77,7 @@ func (ds *SlsDatasource) Query(ctx context.Context, tsdbReq *datasource.Datasour
 
 func (ds *SlsDatasource) GetValue(v string) *datasource.RowValue {
 	value := &datasource.RowValue{}
-	if len(v) > 10 {
+	if len(v) > 13 {
 		value.StringValue = v
 		value.Kind = datasource.RowValue_TYPE_STRING
 		return value
