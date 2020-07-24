@@ -154,7 +154,11 @@ Metric Field 设置为 `pv`
 - WHEN `avg ()` OF `query (B, 5m, now)` IS ABOVE `89`, 代表线条B最近五分钟的均值超过89告警
 - 在Notifications下添加通知方式及通知信息
 
-## 错误诊断
+
+## 常见问题
+
+
+### 错误诊断
 
 查看grafana 日志
 
@@ -162,26 +166,29 @@ Metric Field 设置为 `pv`
 
 在 linux 日志目录是 /var/log/grafana
 
-- aliyun-log-plugin_linux_amd64: permission denied , 需要授予aliyun-log-plugin_linux_amd64执行权限
+- aliyun-log-plugin_linux_amd64: permission denied , 需要授予插件目录下dist/aliyun-log-plugin_linux_amd64执行权限
 
 
-## grafana 7.0
+### grafana 7.0
 
 参考 [Backend plugins: Unsigned external plugins should not be loaded by default #24027](https://github.com/grafana/grafana/issues/24027)
 
 修改grafana配置文件
 
-在mac上为 `/usr/local/etc/grafana/grafana.ini`
+在mac上一般为 `/usr/local/etc/grafana/grafana.ini`
+
+在linux上一般为 `/etc/grafana/grafana.ini`
 
 在`[plugins]`标签下设置参数
 
 `allow_loading_unsigned_plugins = aliyun-log-service-datasource,grafana-log-service-datasource`
 
 
+### 添加source变量
 
+`* | select distinct __source__ as source`
 
-
-
+__source__字段默认会被过滤掉，需要用as起别名
 
 
 
