@@ -36,8 +36,8 @@ export class GenericDatasource {
             else {
                 return { status: "failed", message: "Data source is not working", title: "Error" };
             }
-        }).catch(() => {
-            return { status: "failed", message: "Data source is not working", title: "Error" };
+        }).catch((e) => {
+            return { status: "failed", message: "Data source is not working" + e.data.message , title: "Error" };
         });
     }
     annotationQuery(options) {

@@ -115,8 +115,8 @@ System.register(['lodash'], function (_export, _context) {
                             } else {
                                 return { status: "failed", message: "Data source is not working", title: "Error" };
                             }
-                        }).catch(function () {
-                            return { status: "failed", message: "Data source is not working", title: "Error" };
+                        }).catch(function (e) {
+                            return { status: "failed", message: "Data source is not working:" + e.data.message , title: "Error" };
                         });
                     }
                 }, {
