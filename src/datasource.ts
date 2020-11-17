@@ -158,8 +158,8 @@ export class GenericDatasource {
         type: target.type || 'timeserie',
         datasourceId: this.id,
         query: this.replaceQueryParameters(target, options),
-        xcol: target.xcol,
-        ycol: target.ycol,
+        xcol: this.templateSrv.replace(target.xcol, options.scopedVars, 'regex'),
+        ycol: this.templateSrv.replace(target.ycol, options.scopedVars, 'regex'),
         logsPerPage: target.logsPerPage,
         currentPage: target.currentPage,
         mode: target.mode

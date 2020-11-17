@@ -204,8 +204,8 @@ System.register(['lodash'], function (_export, _context) {
                                 type: target.type || 'timeserie',
                                 datasourceId: _this.id,
                                 query: _this.replaceQueryParameters(target, options),
-                                xcol: target.xcol,
-                                ycol: target.ycol,
+                                xcol: _this.templateSrv.replace(target.xcol, options.scopedVars, 'regex'),
+                                ycol: _this.templateSrv.replace(target.ycol, options.scopedVars, 'regex'),
                                 logsPerPage: target.logsPerPage,
                                 currentPage: target.currentPage,
                                 mode: target.mode
