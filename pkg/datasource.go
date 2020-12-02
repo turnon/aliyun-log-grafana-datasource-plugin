@@ -48,7 +48,6 @@ func (ds *SlsDatasource) Query(ctx context.Context, tsdbReq *datasource.Datasour
 		AccessKeyID:     accessKeyId,
 		AccessKeySecret: accessKeySecret,
 		UserAgent:       "grafana-go",
-		RequestTimeOut:  60,
 	}
 
 	queries := tsdbReq.Queries
