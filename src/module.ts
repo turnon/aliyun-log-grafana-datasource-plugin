@@ -1,22 +1,11 @@
-import {GenericDatasource} from './datasource';
-import {GenericDatasourceQueryCtrl} from './query_ctrl';
+import { DataSourcePlugin } from '@grafana/data';
+import { SLSDataSource } from './datasource';
+import { SLSConfigEditor } from './ConfigEditor';
+import { SLSQueryEditor } from './QueryEditor';
+import { SLSQuery, SLSDataSourceOptions } from './types';
+import { SLSVariableQueryEditor } from './VariableQueryEditor';
 
-class GenericConfigCtrl {
-  static templateUrl = 'partials/config.html';
-}
-
-class GenericQueryOptionsCtrl {
-  static templateUrl = 'partials/query.options.html';
-}
-
-class GenericAnnotationsQueryCtrl {
-  static templateUrl = 'partials/annotations.editor.html'
-}
-
-export {
-  GenericDatasource as Datasource,
-  GenericDatasourceQueryCtrl as QueryCtrl,
-  GenericConfigCtrl as ConfigCtrl,
-  GenericQueryOptionsCtrl as QueryOptionsCtrl,
-  GenericAnnotationsQueryCtrl as AnnotationsQueryCtrl
-};
+export const plugin = new DataSourcePlugin<SLSDataSource, SLSQuery, SLSDataSourceOptions>(SLSDataSource)
+  .setConfigEditor(SLSConfigEditor)
+  .setQueryEditor(SLSQueryEditor)
+  .setVariableQueryEditor(SLSVariableQueryEditor);

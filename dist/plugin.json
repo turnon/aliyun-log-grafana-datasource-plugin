@@ -1,41 +1,43 @@
 {
-  "name": "LogService",
-  "id": "aliyun-log-service-datasource",
+  "$schema": "https://raw.githubusercontent.com/grafana/grafana/master/docs/sources/developers/plugins/plugin.schema.json",
   "type": "datasource",
+  "name": "log-service-datasource",
+  "id": "aliyun-log-service-datasource",
   "metrics": true,
-  "logs": true,
-  "annotations": true,
   "backend": true,
-  "alerting": true,
-  "executable": "aliyun-log-plugin",
-
+  "executable": "gpx_log-service-datasource",
   "info": {
     "description": "Aliyun log service datasource (backend version)",
     "author": {
-      "name": "aliyun log service dev",
+      "name": "aliyun-log",
       "url": "https://aliyun.com/product/sls"
     },
-    "keywords": ["sls", "aliyun", "log", "日志服务"],
+    "keywords": [
+      "sls",
+      "aliyun",
+      "log",
+      "日志服务"
+    ],
     "logos": {
       "small": "img/sls_logo.jpg",
       "large": "img/sls_logo.jpg"
     },
     "links": [
       {
-        "name": "GitHub",
+        "name": "Website",
         "url": "https://github.com/aliyun/aliyun-log-grafana-datasource-plugin"
       },
       {
-        "name": "MIT License",
+        "name": "License",
         "url": "https://github.com/aliyun/aliyun-log-grafana-datasource-plugin/blob/master/LICENSE"
       }
     ],
-    "version": "1.1.0",
-    "updated": "2020-06-02"
+    "screenshots": [],
+    "version": "1.0.0",
+    "updated": "2021-07-02"
   },
-
   "dependencies": {
-    "grafanaVersion": "6.x.x",
+    "grafanaDependency": ">=7.0.0",
     "plugins": []
   }
 }
