@@ -1,13 +1,11 @@
-import { GenericDatasource } from './datasource';
-import { GenericDatasourceQueryCtrl } from './query_ctrl';
-class GenericConfigCtrl {
-}
-GenericConfigCtrl.templateUrl = 'partials/config.html';
-class GenericQueryOptionsCtrl {
-}
-GenericQueryOptionsCtrl.templateUrl = 'partials/query.options.html';
-class GenericAnnotationsQueryCtrl {
-}
-GenericAnnotationsQueryCtrl.templateUrl = 'partials/annotations.editor.html';
-export { GenericDatasource as Datasource, GenericDatasourceQueryCtrl as QueryCtrl, GenericConfigCtrl as ConfigCtrl, GenericQueryOptionsCtrl as QueryOptionsCtrl, GenericAnnotationsQueryCtrl as AnnotationsQueryCtrl };
+import { DataSourcePlugin } from '@grafana/data';
+import { SLSDataSource } from './datasource';
+import { SLSConfigEditor } from './ConfigEditor';
+import { SLSQueryEditor } from './QueryEditor';
+import { SLSVariableQueryEditor } from './VariableQueryEditor';
+export var plugin = new DataSourcePlugin(SLSDataSource)
+    .setConfigEditor(SLSConfigEditor)
+    .setQueryEditor(SLSQueryEditor)
+    .setVariableQueryEditor(SLSVariableQueryEditor);
+export { SLSVariableQueryEditor as VariableQueryEditor };
 //# sourceMappingURL=module.js.map
