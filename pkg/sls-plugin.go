@@ -192,26 +192,17 @@ func (d *SlsDatasource) PublishStream(_ context.Context, req *backend.PublishStr
 	}, nil
 }
 
-func (ds *SlsDatasource) ParseTimestamp(v string) (int64, error) {
-	floatV, err := strconv.ParseFloat(v, 10)
-	if err != nil {
-		return 0, err
-	}
-	int64V := int64(floatV)
-	return int64V * 1000, nil
-}
-
-func (ds *SlsDatasource) SortLogs(logs []map[string]string, xcol string) {
+func (ds *SlsDatasource) SortLogs(logs []map[string]string, col string) {
 	sort.Slice(logs, func(i, j int) bool {
-		timestamp1, err := ds.ParseTimestamp(logs[i][xcol])
+		f1, err := strconv.ParseFloat(logs[i][col], 10)
 		if err != nil {
 			backend.Logger.Error("SortLogs1", "error ", err)
 		}
-		timestamp2, err := ds.ParseTimestamp(logs[j][xcol])
+		f2, err := strconv.ParseFloat(logs[j][col], 10)
 		if err != nil {
 			backend.Logger.Error("SortLogs2", "error ", err)
 		}
-		if timestamp1 < timestamp2 {
+		if f1 < f2 {
 			return true
 		}
 		return false
@@ -398,11 +389,11 @@ func (ds *SlsDatasource) BuildPieGraph(logs []map[string]string, ycols []string,
 	}
 	frame := data.NewFrame("response")
 	fieldMap := make(map[string][]float64)
-	labelSet := make(map[string]bool)
+	var labelArr []string
 	for _, alog := range logs {
-		labelSet[alog[ycols[0]]] = true
+		labelArr = append(labelArr, alog[ycols[0]])
 	}
-	for label := range labelSet {
+	for _, label := range labelArr {
 		exist := false
 		for _, alog := range logs {
 			if alog[ycols[0]] == label {
@@ -421,8 +412,8 @@ func (ds *SlsDatasource) BuildPieGraph(logs []map[string]string, ycols []string,
 		}
 	}
 
-	for k, v := range fieldMap {
-		frame.Fields = append(frame.Fields, data.NewField(k, nil, v))
+	for _, v := range labelArr {
+		frame.Fields = append(frame.Fields, data.NewField(v, nil, fieldMap[v]))
 	}
 	*frames = append(*frames, frame)
 }
@@ -471,6 +462,8 @@ func (ds *SlsDatasource) BuildTable(logs []map[string]string, xcol string, ycols
 
 	fieldMap := make(map[string][]string)
 
+	var keyArr []string
+
 	var times []time.Time
 
 	if len(ycols) == 1 && ycols[0] == "" {
@@ -483,6 +476,7 @@ func (ds *SlsDatasource) BuildTable(logs []map[string]string, xcol string, ycols
 	}
 	for _, ycol := range ycols {
 		fieldMap[ycol] = make([]string, 0)
+		keyArr = append(keyArr, ycol)
 	}
 	for _, alog := range logs {
 		for k, v := range alog {
@@ -500,8 +494,8 @@ func (ds *SlsDatasource) BuildTable(logs []map[string]string, xcol string, ycols
 			}
 		}
 	}
-	for k, v := range fieldMap {
-		frame.Fields = append(frame.Fields, data.NewField(k, nil, v))
+	for _, v := range keyArr {
+		frame.Fields = append(frame.Fields, data.NewField(v, nil, fieldMap[v]))
 	}
 	if len(times) > 0 {
 		frame.Fields = append(frame.Fields, data.NewField("time", nil, times))

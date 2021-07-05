@@ -1,70 +1,158 @@
-# Grafana Data Source Backend Plugin Template
+## Aliyun log service Datasource 
 
-[![Build](https://github.com/grafana/grafana-starter-datasource-backend/workflows/CI/badge.svg)](https://github.com/grafana/grafana-datasource-backend/actions?query=workflow%3A%22CI%22)
 
-This template is a starting point for building Grafana Data Source Backend Plugins
+More documentation about datasource plugins can be found in the [Docs](https://github.com/grafana/grafana/blob/master/docs/sources/plugins/developing/datasources.md).
 
-## What is Grafana Data Source Backend Plugin?
 
-Grafana supports a wide range of data sources, including Prometheus, MySQL, and even Datadog. There’s a good chance you can already visualize metrics from the systems you have set up. In some cases, though, you already have an in-house metrics solution that you’d like to add to your Grafana dashboards. Grafana Data Source Plugins enables integrating such solutions with Grafana.
+[**中文文档**](README_CN.md)
 
-For more information about backend plugins, refer to the documentation on [Backend plugins](https://grafana.com/docs/grafana/latest/developers/plugins/backend/).
 
-## Getting started
+## Install 
 
-A data source backend plugin consists of both frontend and backend components.
 
-### Frontend
+Clone this project into grafana plugin directory , then restart grafana.
 
-1. Install dependencies
+In mac the plugin directory is /usr/local/var/lib/grafana/plugins.
 
-   ```bash
-   yarn install
-   ```
+After install the plugin ,restart grafana
 
-2. Build plugin in development mode or run in watch mode
+```
+brew services start grafana
+```
 
-   ```bash
-   yarn dev
-   ```
+## Add datasource
 
-   or
+In datasource management panel, add a datasource with the type "LogService".
 
-   ```bash
-   yarn watch
-   ```
+In Http settings, set Url = http://${log\_service\_endpoint} . e.g. Your projectName is accesslog in qingdao region, then the url is http://cn-qingdao.log.aliyuncs.com.
 
-3. Build plugin in production mode
+Access : select `Server(Default)`
 
-   ```bash
-   yarn build
-   ```
+log service details: 
 
-### Backend
+set Project and logstore
 
-1. Update [Grafana plugin SDK for Go](https://grafana.com/docs/grafana/latest/developers/plugins/backend/grafana-plugin-sdk-for-go/) dependency to the latest minor version:
+AccessId and AccessKey : it is better to use a sub user accessId and accessKey.
 
-   ```bash
-   go get -u github.com/grafana/grafana-plugin-sdk-go
-   go mod tidy
-   ```
+To ensure data security, AK is saved and cleared without echo
 
-2. Build backend plugin binaries for Linux, Windows and Darwin:
 
-   ```bash
-   mage -v
-   ```
+## Add dashboard
 
-3. List all available Mage targets for additional commands:
 
-   ```bash
-   mage -l
-   ```
+Add a panel, in the datasource option, choose the log service datasource that is just created.
 
-## Learn more
+In the query : insert your query , e.g.
 
-- [Build a data source backend plugin tutorial](https://grafana.com/tutorials/build-a-data-source-backend-plugin)
-- [Grafana documentation](https://grafana.com/docs/)
-- [Grafana Tutorials](https://grafana.com/tutorials/) - Grafana Tutorials are step-by-step guides that help you make the most of Grafana
-- [Grafana UI Library](https://developers.grafana.com/ui) - UI components to help you build interfaces using Grafana Design System
-- [Grafana plugin SDK for Go](https://grafana.com/docs/grafana/latest/developers/plugins/backend/grafana-plugin-sdk-for-go/)
+```
+*|select count(1) as c,count(1)/2 as c1, __time__- __time__%60  as t  group by t limit 10000
+```
+
+The X column ,insert t (**Second timestamp**)
+
+The Y column , insert c,c1 (**Multiple columns are separated by commas**)
+
+Save the dashboard
+
+## Usage
+
+### Variables
+
+In the top right corner of the dashboard panel, click dashboard Settings and select Variables.
+
+Reference variables `$VariableName`
+
+### Flow graph
+
+The X-axis is set to the time column
+
+The Y-axis is set to the format `col1#:#col2`, where col1 is the aggregate column and col2 is the other columns
+
+The Query sample is set to  
+```
+* | select to_unixtime(time) as time,status,count from (select time_series(__time__, '1m', '%Y-%m-%d %H:%i', '0')  as time,status,count(*) as count from log group by status,time order by time limit 10000)
+```
+
+![](https://raw.githubusercontent.com/aliyun/aliyun-log-grafana-datasource-plugin/master/img/demo1.png)
+
+### Pie
+
+The X-axis is set to `pie`
+
+The Y-axis is set to categories and numeric columns (example `method,pv`)
+
+The Query sample is set to  
+```
+$hostname | select count(1) as pv ,method group by method
+```
+
+![](https://raw.githubusercontent.com/aliyun/aliyun-log-grafana-datasource-plugin/master/img/demo2.png)
+
+### Table
+
+The X-axis is set to `table` or null
+
+The Y-axis is set to columns
+
+### World map penel
+
+The X-axis is set to `map`
+
+The Y-axis is set to `country,geo,pv`
+
+The Query sample is set to  
+```
+* | select   count(1) as pv ,geohash(ip_to_geo(arbitrary(remote_addr))) as geo,ip_to_country(remote_addr) as country  from log group by country having geo <>'' limit 1000
+```
+
+Location Data : `geohash`
+
+Location Name Field : `country`
+
+Geo_point/Geohash Field :" `geo`
+
+Metric Field : `pv`
+
+The query:
+
+![](http://logdemo.oss-cn-beijing.aliyuncs.com/worldmap1.png)
+
+Parameter Settings:
+
+![](http://logdemo.oss-cn-beijing.aliyuncs.com/worldmap2.png)
+
+### Alert
+
+#### Mode of notification
+
+In the alert notification panel, select New channel to add
+
+#### Alert
+
+**Attention** :Dashboard alert only, not plug-in alert
+
+A sample of:
+
+![](https://raw.githubusercontent.com/aliyun/aliyun-log-grafana-datasource-plugin/master/img/demo3.png)
+
+Add the alert panel:
+
+![](https://raw.githubusercontent.com/aliyun/aliyun-log-grafana-datasource-plugin/master/img/demo4.png)
+
+- The red line on the chart represents the set threshold. Click on the right side and drag it up and down.
+- Evaluate every `1m` for `5m`, Is the result calculated every minute, and the threshold is exceeded for five consecutive minutes.
+- After setting for, if the state exceeds the threshold value and changes from Ok to Pending, the alarm will not be triggered. After continuously exceeding the threshold value for a period of time, the alarm will be sent. If the state changes from Pending to Alerting, the alarm will only be notified once.
+- WHEN `avg ()` OF `query (B, 5m, now)` IS ABOVE `89`, That means line B has an average of more than 89 alarms in the last five minutes.
+- Add notification mode and notification information under Notifications.
+
+
+## grafana 7.0
+
+[Backend plugins: Unsigned external plugins should not be loaded by default #24027](https://github.com/grafana/grafana/issues/24027)
+
+
+## Contributors
+
+[@WPH95](https://github.com/WPH95) made a great contribution to this project.
+
+Thanks for the excellent work by [@WPH95](https://github.com/WPH95).

@@ -1,15 +1,11 @@
 import * as tslib_1 from "tslib";
 import React, { PureComponent } from 'react';
 import { LegacyForms } from '@grafana/ui';
-import { getTemplateSrv } from '@grafana/runtime';
-import { SLSVariableQueryEditor } from "./VariableQueryEditor";
 var SecretFormField = LegacyForms.SecretFormField, FormField = LegacyForms.FormField;
 var SLSConfigEditor = /** @class */ (function (_super) {
     tslib_1.__extends(SLSConfigEditor, _super);
-    function SLSConfigEditor(instanceSettings, templateSrv) {
-        if (templateSrv === void 0) { templateSrv = getTemplateSrv(); }
-        var _this = _super.call(this, instanceSettings) || this;
-        _this.templateSrv = templateSrv;
+    function SLSConfigEditor() {
+        var _this = _super !== null && _super.apply(this, arguments) || this;
         _this.onEndpointChange = function (event) {
             var _a = _this.props, onOptionsChange = _a.onOptionsChange, options = _a.options;
             options.url = event.target.value;
@@ -62,7 +58,6 @@ var SLSConfigEditor = /** @class */ (function (_super) {
             var _a = _this.props, onOptionsChange = _a.onOptionsChange, options = _a.options;
             onOptionsChange(tslib_1.__assign({}, options, { secureJsonFields: tslib_1.__assign({}, options.secureJsonFields, { accessKeySecret: false }), secureJsonData: tslib_1.__assign({}, options.secureJsonData, { accessKeySecret: '' }) }));
         };
-        _this.variables = new SLSVariableQueryEditor();
         return _this;
     }
     SLSConfigEditor.prototype.render = function () {

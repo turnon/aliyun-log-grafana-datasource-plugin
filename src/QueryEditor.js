@@ -1,7 +1,7 @@
 import * as tslib_1 from "tslib";
 import { defaults } from 'lodash';
 import React, { PureComponent } from 'react';
-import { LegacyForms } from '@grafana/ui';
+import { LegacyForms, InlineFormLabel } from '@grafana/ui';
 import { defaultQuery } from './types';
 var FormField = LegacyForms.FormField;
 var SLSQueryEditor = /** @class */ (function (_super) {
@@ -31,10 +31,11 @@ var SLSQueryEditor = /** @class */ (function (_super) {
         var query = dq.query, xcol = dq.xcol, ycol = dq.ycol;
         return (React.createElement(React.Fragment, null,
             React.createElement("div", { className: "gf-form-inline" },
-                React.createElement(FormField, { labelWidth: 6, inputWidth: 30, value: query, onChange: this.onQueryTextChange, label: "query" })),
+                React.createElement(InlineFormLabel, { width: 6, className: "query-keyword" }, "Query"),
+                React.createElement("input", { className: "gf-form-input", value: query, onChange: this.onQueryTextChange, onBlur: this.onQueryTextChange })),
             React.createElement("div", { className: "gf-form-inline" },
-                React.createElement(FormField, { labelWidth: 6, inputWidth: 11, value: ycol, onChange: this.onYChange, label: "ycol" }),
-                React.createElement(FormField, { labelWidth: 6, inputWidth: 12, value: xcol, onChange: this.onXChange, label: "xcol(time)" }))));
+                React.createElement(FormField, { labelWidth: 6, inputWidth: 30, value: ycol, onChange: this.onYChange, label: "ycol" }),
+                React.createElement(FormField, { labelWidth: 6, inputWidth: 20, value: xcol, onChange: this.onXChange, label: "xcol(time)" }))));
     };
     return SLSQueryEditor;
 }(PureComponent));
