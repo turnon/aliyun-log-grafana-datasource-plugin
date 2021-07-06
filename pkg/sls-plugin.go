@@ -78,7 +78,7 @@ func (d *SlsDatasource) QueryData(ctx context.Context, req *backend.QueryDataReq
 	for _, query := range queries {
 		log.DefaultLogger.Info("range_queries", "RefID", query.RefID,
 			"JSON", query.JSON, "QueryType", query.QueryType)
-		go d.QueryLogs(ch, &query, client, config)
+		go d.QueryLogs(ch, query, client, config)
 	}
 	c := 0
 	for res := range ch {
@@ -209,7 +209,7 @@ func (ds *SlsDatasource) SortLogs(logs []map[string]string, col string) {
 	})
 }
 
-func (ds *SlsDatasource) QueryLogs(ch chan Result, query *backend.DataQuery, client *sls.Client, logSource *LogSource) {
+func (ds *SlsDatasource) QueryLogs(ch chan Result, query backend.DataQuery, client *sls.Client, logSource *LogSource) {
 	response := backend.DataResponse{}
 	refId := query.RefID
 	queryInfo := &QueryInfo{}
