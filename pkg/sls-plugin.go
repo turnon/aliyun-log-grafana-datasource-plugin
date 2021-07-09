@@ -254,9 +254,20 @@ func (ds *SlsDatasource) QueryLogs(ch chan Result, query backend.DataQuery, clie
 	log.DefaultLogger.Info("QueryLogs", "getLogsResp", getLogsResp)
 
 	var frames data.Frames
+
+	if xcol == "trace" {
+		log.DefaultLogger.Info("BuildTrace")
+		ds.BuildTrace(logs, &frames)
+		response.Frames = frames
+		ch <- Result{
+			refId:        refId,
+			dataResponse: response,
+		}
+		return
+	}
 	if !strings.Contains(queryInfo.Query, "|") && len(queryInfo.Ycol) == 0 {
 		log.DefaultLogger.Info("BuildLogs")
-		ds.BuildLogs(ch, logs, &frames)
+		ds.BuildLogs(logs, &frames)
 		response.Frames = frames
 		ch <- Result{
 			refId:        refId,
@@ -503,8 +514,12 @@ func (ds *SlsDatasource) BuildTable(logs []map[string]string, xcol string, ycols
 	*frames = append(*frames, frame)
 }
 
-func (ds *SlsDatasource) BuildLogs(ch chan Result, logs []map[string]string, frames *data.Frames) {
+func (ds *SlsDatasource) BuildLogs(logs []map[string]string, frames *data.Frames) {
 	frame := data.NewFrame("response")
+	frame.Meta = &data.FrameMeta{
+		PreferredVisualization: data.VisTypeLogs,
+	}
+
 	var times []time.Time
 	var values []string
 	for _, alog := range logs {
@@ -532,5 +547,84 @@ func (ds *SlsDatasource) BuildLogs(ch chan Result, logs []map[string]string, fra
 		data.NewField("time", nil, times),
 		data.NewField("values", nil, values),
 	)
+	*frames = append(*frames, frame)
+}
+
+func (ds *SlsDatasource) BuildTrace(logs []map[string]string, frames *data.Frames) {
+	frame := data.NewFrame("response")
+	frame.Meta = &data.FrameMeta{
+		PreferredVisualization: data.VisTypeTrace,
+	}
+
+	//ycols := map[string]string{
+	//	//Required fields
+	//	"traceID": "traceID",
+	//	"spanID": "spanID",
+	//	"parentSpanID": "parentSpanID",
+	//	"serviceName": "service",
+	//	"serviceTags": "",
+	//	"startTime": "start",
+	//	"duration": "duration",
+	//	//Optional fields
+	//	"logs": "logs",
+	//	//"tags": "",
+	//	//"warnings": "",
+	//	//"stackTraces": "",
+	//	//"errorIconColor": "",
+	//}
+	traceID := make([]string, 0)
+	spanID := make([]string, 0)
+	parentSpanID := make([]string, 0)
+	serviceName := make([]string, 0)
+	serviceTags := make([]string, 0)
+	startTime := make([]float64, 0)
+	duration := make([]float64, 0)
+	for _, alog := range logs {
+		traceID = append(traceID, alog["traceID"])
+		spanID = append(spanID, alog["spanID"])
+		parentSpanID = append(parentSpanID, alog["parentSpanID"])
+
+		if alog["serviceName"] == "" {
+			serviceName = append(serviceName, alog["service"])
+		} else {
+			serviceName = append(serviceName, alog["serviceName"])
+		}
+
+		if alog["serviceTags"] == "" {
+			serviceTags = append(serviceTags, alog["resource"])
+		} else {
+			serviceTags = append(serviceTags, alog["serviceTags"])
+		}
+		var sTime string
+		if alog["startTime"] == "" {
+			sTime = alog["start"]
+		} else {
+			sTime = alog["startTime"]
+		}
+
+		startTimeV, err := strconv.ParseFloat(sTime, 16)
+		if err != nil {
+			log.DefaultLogger.Error("BuildTrace", "ParseFloat", err)
+			startTime = append(startTime, 0)
+		} else {
+			startTime = append(startTime, startTimeV/1000)
+		}
+		durationV, err := strconv.ParseFloat(alog["duration"], 16)
+		if err != nil {
+			log.DefaultLogger.Error("BuildTrace", "ParseFloat", err)
+			duration = append(duration, 0)
+		} else {
+			duration = append(duration, durationV/1000)
+		}
+
+	}
+	frame.Fields = append(frame.Fields, data.NewField("traceID", nil, traceID))
+	frame.Fields = append(frame.Fields, data.NewField("spanID", nil, spanID))
+	frame.Fields = append(frame.Fields, data.NewField("parentSpanID", nil, parentSpanID))
+	frame.Fields = append(frame.Fields, data.NewField("serviceName", nil, serviceName))
+	frame.Fields = append(frame.Fields, data.NewField("serviceTags", nil, serviceTags))
+	frame.Fields = append(frame.Fields, data.NewField("startTime", nil, startTime))
+	frame.Fields = append(frame.Fields, data.NewField("duration", nil, duration))
+
 	*frames = append(*frames, frame)
 }
