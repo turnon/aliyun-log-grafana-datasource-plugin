@@ -479,7 +479,7 @@ func (ds *SlsDatasource) BuildTable(logs []map[string]string, xcol string, ycols
 
 	if len(ycols) == 1 && ycols[0] == "" {
 		ycols = ycols[:0]
-		for k, _ := range logs[0] {
+		for k := range logs[0] {
 			if k != "__time__" && k != "__source__" {
 				ycols = append(ycols, k)
 			}
@@ -556,53 +556,30 @@ func (ds *SlsDatasource) BuildTrace(logs []map[string]string, frames *data.Frame
 		PreferredVisualization: data.VisTypeTrace,
 	}
 
-	//ycols := map[string]string{
-	//	//Required fields
-	//	"traceID": "traceID",
-	//	"spanID": "spanID",
-	//	"parentSpanID": "parentSpanID",
-	//	"serviceName": "service",
-	//	"serviceTags": "",
-	//	"startTime": "start",
-	//	"duration": "duration",
-	//	//Optional fields
-	//	"logs": "logs",
-	//	//"tags": "",
-	//	//"warnings": "",
-	//	//"stackTraces": "",
-	//	//"errorIconColor": "",
-	//}
 	traceID := make([]string, 0)
 	spanID := make([]string, 0)
 	parentSpanID := make([]string, 0)
 	serviceName := make([]string, 0)
-	serviceTags := make([]string, 0)
 	startTime := make([]float64, 0)
 	duration := make([]float64, 0)
+	resource := make([]string, 0)
+	host := make([]string, 0)
+	attribute := make([]string, 0)
+	statusCode := make([]string, 0)
+	statusMessage := make([]string, 0)
+	logs1 := make([]string, 0)
 	for _, alog := range logs {
 		traceID = append(traceID, alog["traceID"])
 		spanID = append(spanID, alog["spanID"])
 		parentSpanID = append(parentSpanID, alog["parentSpanID"])
-
-		if alog["serviceName"] == "" {
-			serviceName = append(serviceName, alog["service"])
-		} else {
-			serviceName = append(serviceName, alog["serviceName"])
-		}
-
-		if alog["serviceTags"] == "" {
-			serviceTags = append(serviceTags, alog["resource"])
-		} else {
-			serviceTags = append(serviceTags, alog["serviceTags"])
-		}
-		var sTime string
-		if alog["startTime"] == "" {
-			sTime = alog["start"]
-		} else {
-			sTime = alog["startTime"]
-		}
-
-		startTimeV, err := strconv.ParseFloat(sTime, 16)
+		serviceName = append(serviceName, alog["service"])
+		host = append(host, alog["host"])
+		resource = append(resource, alog["resource"])
+		attribute = append(attribute, alog["attribute"])
+		statusCode = append(statusCode, alog["statusCode"])
+		statusMessage = append(statusMessage, alog["statusMessage"])
+		logs1 = append(logs1, alog["logs"])
+		startTimeV, err := strconv.ParseFloat(alog["start"], 16)
 		if err != nil {
 			log.DefaultLogger.Error("BuildTrace", "ParseFloat", err)
 			startTime = append(startTime, 0)
@@ -622,9 +599,13 @@ func (ds *SlsDatasource) BuildTrace(logs []map[string]string, frames *data.Frame
 	frame.Fields = append(frame.Fields, data.NewField("spanID", nil, spanID))
 	frame.Fields = append(frame.Fields, data.NewField("parentSpanID", nil, parentSpanID))
 	frame.Fields = append(frame.Fields, data.NewField("serviceName", nil, serviceName))
-	frame.Fields = append(frame.Fields, data.NewField("serviceTags", nil, serviceTags))
 	frame.Fields = append(frame.Fields, data.NewField("startTime", nil, startTime))
 	frame.Fields = append(frame.Fields, data.NewField("duration", nil, duration))
-
+	frame.Fields = append(frame.Fields, data.NewField("resource", nil, resource))
+	frame.Fields = append(frame.Fields, data.NewField("host", nil, host))
+	frame.Fields = append(frame.Fields, data.NewField("attribute", nil, attribute))
+	frame.Fields = append(frame.Fields, data.NewField("statusCode", nil, statusCode))
+	frame.Fields = append(frame.Fields, data.NewField("statusMessage", nil, statusMessage))
+	frame.Fields = append(frame.Fields, data.NewField("logs", nil, logs1))
 	*frames = append(*frames, frame)
 }

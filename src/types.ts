@@ -32,3 +32,9 @@ export interface SLSSecureJsonData {
   accessKeyId?: string;
   accessKeySecret?: string;
 }
+
+export declare type SlsLog = {
+  time: number;
+  attribute: Map<string, string>;
+  name: string;
+};

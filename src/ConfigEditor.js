@@ -1,25 +1,25 @@
-import * as tslib_1 from "tslib";
+import { __assign, __extends } from "tslib";
 import React, { PureComponent } from 'react';
 import { LegacyForms } from '@grafana/ui';
 var SecretFormField = LegacyForms.SecretFormField, FormField = LegacyForms.FormField;
 var SLSConfigEditor = /** @class */ (function (_super) {
-    tslib_1.__extends(SLSConfigEditor, _super);
+    __extends(SLSConfigEditor, _super);
     function SLSConfigEditor() {
         var _this = _super !== null && _super.apply(this, arguments) || this;
         _this.onEndpointChange = function (event) {
             var _a = _this.props, onOptionsChange = _a.onOptionsChange, options = _a.options;
             options.url = event.target.value;
-            onOptionsChange(tslib_1.__assign({}, options));
+            onOptionsChange(__assign({}, options));
         };
         _this.onProjectChange = function (event) {
             var _a = _this.props, onOptionsChange = _a.onOptionsChange, options = _a.options;
-            var jsonData = tslib_1.__assign({}, options.jsonData, { project: event.target.value });
-            onOptionsChange(tslib_1.__assign({}, options, { jsonData: jsonData }));
+            var jsonData = __assign(__assign({}, options.jsonData), { project: event.target.value });
+            onOptionsChange(__assign(__assign({}, options), { jsonData: jsonData }));
         };
         _this.onLogStoreChange = function (event) {
             var _a = _this.props, onOptionsChange = _a.onOptionsChange, options = _a.options;
-            var jsonData = tslib_1.__assign({}, options.jsonData, { logstore: event.target.value });
-            onOptionsChange(tslib_1.__assign({}, options, { jsonData: jsonData }));
+            var jsonData = __assign(__assign({}, options.jsonData), { logstore: event.target.value });
+            onOptionsChange(__assign(__assign({}, options), { jsonData: jsonData }));
         };
         // Secure field (only sent to the backend)
         _this.onAKIDChange = function (event) {
@@ -31,7 +31,7 @@ var SLSConfigEditor = /** @class */ (function (_super) {
                     accessKeySecret = options.secureJsonData['accessKeySecret'];
                 }
             }
-            onOptionsChange(tslib_1.__assign({}, options, { secureJsonData: {
+            onOptionsChange(__assign(__assign({}, options), { secureJsonData: {
                     accessKeyId: event.target.value,
                     accessKeySecret: accessKeySecret,
                 } }));
@@ -45,18 +45,18 @@ var SLSConfigEditor = /** @class */ (function (_super) {
                     accessKeyId = options.secureJsonData['accessKeyId'];
                 }
             }
-            onOptionsChange(tslib_1.__assign({}, options, { secureJsonData: {
+            onOptionsChange(__assign(__assign({}, options), { secureJsonData: {
                     accessKeyId: accessKeyId,
                     accessKeySecret: event.target.value,
                 } }));
         };
         _this.onResetAKID = function () {
             var _a = _this.props, onOptionsChange = _a.onOptionsChange, options = _a.options;
-            onOptionsChange(tslib_1.__assign({}, options, { secureJsonFields: tslib_1.__assign({}, options.secureJsonFields, { accessKeyId: false }), secureJsonData: tslib_1.__assign({}, options.secureJsonData, { accessKeyId: '' }) }));
+            onOptionsChange(__assign(__assign({}, options), { secureJsonFields: __assign(__assign({}, options.secureJsonFields), { accessKeyId: false }), secureJsonData: __assign(__assign({}, options.secureJsonData), { accessKeyId: '' }) }));
         };
         _this.onResetAKSecret = function () {
             var _a = _this.props, onOptionsChange = _a.onOptionsChange, options = _a.options;
-            onOptionsChange(tslib_1.__assign({}, options, { secureJsonFields: tslib_1.__assign({}, options.secureJsonFields, { accessKeySecret: false }), secureJsonData: tslib_1.__assign({}, options.secureJsonData, { accessKeySecret: '' }) }));
+            onOptionsChange(__assign(__assign({}, options), { secureJsonFields: __assign(__assign({}, options.secureJsonFields), { accessKeySecret: false }), secureJsonData: __assign(__assign({}, options.secureJsonData), { accessKeySecret: '' }) }));
         };
         return _this;
     }
