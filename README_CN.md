@@ -66,9 +66,7 @@ Query 类型变量
 
 ### 设置Logs
 
-如需翻页，要设置固定的时间范围，每页最多展示100条
-
-![](https://raw.githubusercontent.com/aliyun/aliyun-log-grafana-datasource-plugin/master/img/logs.jpg)
+每页最多展示100条
 
 ### 设置流图
 
