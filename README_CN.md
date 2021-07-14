@@ -3,8 +3,9 @@
 
 ## 安装 
 
+依赖 `Grafana 7.0` 及以上版本 , `Grafana 7.0` 以下请使用 [1.0版本](releases/tag/1.0) 
 
-克隆本项目到grafana插件目录下 , 然后重启grafana
+下载本插件到grafana插件目录下 , 然后重启grafana
 
 在 mac 插件目录是 /usr/local/var/lib/grafana/plugins
 
@@ -127,6 +128,12 @@ Metric Field 设置为 `pv`
 参数设置:
 
 ![](http://logdemo.oss-cn-beijing.aliyuncs.com/worldmap2.png)
+
+### Trace
+
+[**Trace数据格式**](https://help.aliyun.com/document_detail/208891.html)
+
+X轴 设置为`trace`
 
 ### 设置告警
 

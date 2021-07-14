@@ -39,66 +39,6 @@ var SLSDataSource = /** @class */ (function (_super) {
     return SLSDataSource;
 }(DataSourceWithBackend));
 export { SLSDataSource };
-// function valueToTag(key: any, value: any) {
-//   return {
-//     key,
-//     value,
-//   };
-// }
-//
-// function transServiceTags(span: any): TraceKeyValuePair[] {
-//   const resource = JSON.parse(span.resource) ;
-//   const resourceMap = new Map(resource);
-//   const host = span.host ;
-//   const resourcearray = Array.from(resourceMap, ([name, value]) => (valueToTag(name, value)));
-//   return [
-//     valueToTag('ipv4', endpoint.ipv4),
-//     valueToTag('ipv6', endpoint.ipv6),
-//     valueToTag('port', endpoint.port),
-//   ].filter(identity) as TraceKeyValuePair[];
-// }
-//
-// function transformSpan(span: any): TraceSpanRow {
-//   const row = {
-//     traceID: span.traceId,
-//     spanID: span.spanID,
-//     parentSpanID: span.parentSpanID,
-//     serviceName: span.serviceName,
-//     serviceTags: transServiceTags(span),
-//     startTime: span.startTime,
-//     duration: span.duration ,
-//     logs: transServiceLogs(span),
-//     // tags: Object.keys(span.tags || {}).reduce<TraceKeyValuePair[]>((acc, key) => {
-//     //   // If tag is error we remap it to simple boolean so that the trace ui will show an error icon.
-//     //   if (key === 'error') {
-//     //     acc.push({
-//     //       key: 'error',
-//     //       value: true,
-//     //     });
-//     //
-//     //     acc.push({
-//     //       key: 'errorValue',
-//     //       value: span.tags!['error'],
-//     //     });
-//     //     return acc;
-//     //   }
-//     //   acc.push({ key, value: span.tags![key] });
-//     //   return acc;
-//     // }, []),
-//   };
-//
-//   // if (span.kind) {
-//   //   row.tags = [
-//   //     {
-//   //       key: 'kind',
-//   //       value: span.kind,
-//   //     },
-//   //     ...(row.tags ?? []),
-//   //   ];
-//   // }
-//
-//   return row;
-// }
 function valueToTag(key, value) {
     return {
         key: key,
@@ -108,11 +48,7 @@ function valueToTag(key, value) {
 function transServiceTags(result, i) {
     var _a, _b;
     var resource = JSON.parse((_a = result.get('resource')) === null || _a === void 0 ? void 0 : _a.get(i));
-    // const mmmmmmmm = new Map(resource);
-    // const hhhhhhh = mmmmmmmm.get('service.version');
-    // console.log(mmmmmmmm);
-    // console.log(hhhhhhh);
-    var resourceArray = Array.from(resource, function (_a) {
+    var resourceArray = Array.from(Object.entries(resource), function (_a) {
         var _b = __read(_a, 2), name = _b[0], value = _b[1];
         return valueToTag(name, value);
     });
@@ -122,7 +58,7 @@ function transServiceTags(result, i) {
 function transTags(result, i) {
     var _a, _b, _c;
     var attribute = JSON.parse((_a = result.get('attribute')) === null || _a === void 0 ? void 0 : _a.get(i));
-    var resourceArray = Array.from(new Map(attribute), function (_a) {
+    var resourceArray = Array.from(Object.entries(attribute), function (_a) {
         var _b = __read(_a, 2), name = _b[0], value = _b[1];
         return valueToTag(name, value);
     });
@@ -130,9 +66,36 @@ function transTags(result, i) {
     resourceArray.push(valueToTag('statusMessage', (_c = result.get('statusMessage')) === null || _c === void 0 ? void 0 : _c.get(i)));
     return resourceArray;
 }
+function transLogs(result, i) {
+    var e_1, _a;
+    var _b;
+    var traceLogs = [];
+    var slsLogs = JSON.parse((_b = result.get('logs')) === null || _b === void 0 ? void 0 : _b.get(i));
+    try {
+        for (var slsLogs_1 = __values(slsLogs), slsLogs_1_1 = slsLogs_1.next(); !slsLogs_1_1.done; slsLogs_1_1 = slsLogs_1.next()) {
+            var slsLog = slsLogs_1_1.value;
+            var attributeArray = Array.from(Object.entries(slsLog.attribute), function (_a) {
+                var _b = __read(_a, 2), name = _b[0], value = _b[1];
+                return valueToTag(name, value);
+            });
+            traceLogs.push({
+                timestamp: slsLog.time / 1000000,
+                fields: attributeArray,
+            });
+        }
+    }
+    catch (e_1_1) { e_1 = { error: e_1_1 }; }
+    finally {
+        try {
+            if (slsLogs_1_1 && !slsLogs_1_1.done && (_a = slsLogs_1.return)) _a.call(slsLogs_1);
+        }
+        finally { if (e_1) throw e_1.error; }
+    }
+    return traceLogs;
+}
 function transformSpan(df) {
-    var _a, _b, _c, _d, _e, _f, _g, _h, _j;
-    var tsds = [];
+    var _a, _b, _c, _d, _e, _f, _g, _h;
+    var traceSpanRows = [];
     var fields = df.fields;
     var result = new Map(fields.map(function (key) { return [key.name, key.values]; }));
     for (var i = 0; i < df.length; i++) {
@@ -145,16 +108,16 @@ function transformSpan(df) {
             serviceTags: transServiceTags(result, i),
             startTime: (_f = result.get('startTime')) === null || _f === void 0 ? void 0 : _f.get(i),
             duration: (_g = result.get('duration')) === null || _g === void 0 ? void 0 : _g.get(i),
-            logs: (_h = result.get('logs')) === null || _h === void 0 ? void 0 : _h.get(i),
             tags: transTags(result, i),
-            errorIconColor: (_j = result.get('errorIconColor')) === null || _j === void 0 ? void 0 : _j.get(i),
+            errorIconColor: ((_h = result.get('statusCode')) === null || _h === void 0 ? void 0 : _h.get(i)) === 'ERROR' ? '#f00' : '',
+            logs: transLogs(result, i),
         };
-        tsds.push(tsd);
+        traceSpanRows.push(tsd);
     }
-    return tsds;
+    return traceSpanRows;
 }
 export function transformResponse(df) {
-    var e_1, _a;
+    var e_2, _a;
     var spanRows = transformSpan(df);
     var frame = new MutableDataFrame({
         fields: [
@@ -179,12 +142,12 @@ export function transformResponse(df) {
             frame.add(span);
         }
     }
-    catch (e_1_1) { e_1 = { error: e_1_1 }; }
+    catch (e_2_1) { e_2 = { error: e_2_1 }; }
     finally {
         try {
             if (spanRows_1_1 && !spanRows_1_1.done && (_a = spanRows_1.return)) _a.call(spanRows_1);
         }
-        finally { if (e_1) throw e_1.error; }
+        finally { if (e_2) throw e_2.error; }
     }
     return frame;
 }
