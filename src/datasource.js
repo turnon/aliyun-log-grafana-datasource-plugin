@@ -124,6 +124,7 @@ export function transformResponse(df) {
             { name: 'traceID', type: FieldType.string },
             { name: 'spanID', type: FieldType.string },
             { name: 'parentSpanID', type: FieldType.string },
+            { name: 'operationName', type: FieldType.string },
             { name: 'serviceName', type: FieldType.string },
             { name: 'serviceTags', type: FieldType.other },
             { name: 'startTime', type: FieldType.number },
