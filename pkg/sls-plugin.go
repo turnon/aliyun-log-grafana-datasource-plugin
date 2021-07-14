@@ -568,6 +568,7 @@ func (ds *SlsDatasource) BuildTrace(logs []map[string]string, frames *data.Frame
 	statusCode := make([]string, 0)
 	statusMessage := make([]string, 0)
 	logs1 := make([]string, 0)
+	operationName := make([]string, 0)
 	for _, alog := range logs {
 		traceID = append(traceID, alog["traceID"])
 		spanID = append(spanID, alog["spanID"])
@@ -579,6 +580,7 @@ func (ds *SlsDatasource) BuildTrace(logs []map[string]string, frames *data.Frame
 		statusCode = append(statusCode, alog["statusCode"])
 		statusMessage = append(statusMessage, alog["statusMessage"])
 		logs1 = append(logs1, alog["logs"])
+		operationName = append(operationName, alog["name"])
 		startTimeV, err := strconv.ParseFloat(alog["start"], 16)
 		if err != nil {
 			log.DefaultLogger.Error("BuildTrace", "ParseFloat", err)
@@ -595,6 +597,7 @@ func (ds *SlsDatasource) BuildTrace(logs []map[string]string, frames *data.Frame
 		}
 
 	}
+	frame.Fields = append(frame.Fields, data.NewField("operationName", nil, operationName))
 	frame.Fields = append(frame.Fields, data.NewField("traceID", nil, traceID))
 	frame.Fields = append(frame.Fields, data.NewField("spanID", nil, spanID))
 	frame.Fields = append(frame.Fields, data.NewField("parentSpanID", nil, parentSpanID))
