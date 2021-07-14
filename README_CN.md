@@ -129,9 +129,11 @@ Metric Field 设置为 `pv`
 
 ![](http://logdemo.oss-cn-beijing.aliyuncs.com/worldmap2.png)
 
-### Trace
+### 设置Trace
 
 [**Trace数据格式**](https://help.aliyun.com/document_detail/208891.html)
+
+在 Explore 面板
 
 X轴 设置为`trace`
 
