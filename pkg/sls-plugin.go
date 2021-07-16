@@ -53,7 +53,7 @@ func (d *SlsDatasource) Dispose() {
 // The QueryDataResponse contains a map of RefID to the response for each query, and each response
 // contains Frames ([]*Frame).
 func (d *SlsDatasource) QueryData(ctx context.Context, req *backend.QueryDataRequest) (*backend.QueryDataResponse, error) {
-	log.DefaultLogger.Info("QueryData called", "request", req)
+	//log.DefaultLogger.Info("QueryData called", "request", req)
 
 	config, err := LoadSettings(req.PluginContext)
 	if err != nil {

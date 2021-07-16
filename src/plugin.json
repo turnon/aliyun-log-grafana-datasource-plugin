@@ -5,6 +5,8 @@
   "id": "aliyun-log-service-datasource",
   "metrics": true,
   "backend": true,
+  "logs": true,
+  "alerting": true,
   "executable": "gpx_log-service-datasource",
   "info": {
     "description": "Aliyun log service datasource (backend version)",
