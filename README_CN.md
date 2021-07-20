@@ -135,6 +135,8 @@ Metric Field 设置为 `pv`
 
 X轴 设置为`trace`
 
+![](https://test-lichao.oss-cn-hangzhou.aliyuncs.com/pic/trace.jpg)
+
 ### 设置告警
 
 #### 通知方式
