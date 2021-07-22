@@ -100,6 +100,16 @@ X轴 设置为`table` 或空
 
 Y轴 设置为列
 
+### 设置柱形图
+
+选择 `Bar charts`
+
+X轴 设置为`bar`
+
+Y轴 第一个值为分组列，后面的值为数字列
+
+![](https://test-lichao.oss-cn-hangzhou.aliyuncs.com/pic/bar.jpg)
+
 ### 设置地图
 
 X轴 设置为`map`

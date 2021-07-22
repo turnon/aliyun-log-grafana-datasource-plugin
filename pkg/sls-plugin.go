@@ -279,9 +279,12 @@ func (ds *SlsDatasource) QueryLogs(ch chan Result, query backend.DataQuery, clie
 	if isFlowGraph {
 		log.DefaultLogger.Info("flow_graph")
 		ds.BuildFlowGraph(logs, xcol, ycols, refId, &frames)
-	} else if xcol == "bar" || xcol == "map" {
-		log.DefaultLogger.Info("bar/map")
+	} else if xcol == "bar" {
+		log.DefaultLogger.Info("bar")
 		ds.BuildBarGraph(logs, ycols, refId, &frames)
+	} else if xcol == "map" {
+		log.DefaultLogger.Info("map")
+		ds.BuildMapGraph(logs, ycols, refId, &frames)
 	} else if xcol == "pie" {
 		log.DefaultLogger.Info("pie")
 		ds.BuildPieGraph(logs, ycols, refId, &frames)
@@ -364,6 +367,37 @@ func (ds *SlsDatasource) BuildFlowGraph(logs []map[string]string, xcol string, y
 
 func (ds *SlsDatasource) BuildBarGraph(logs []map[string]string, ycols []string, refId string, frames *data.Frames) {
 	frame := data.NewFrame("response")
+	numMap := make(map[string][]float64)
+	for _, ycol := range ycols[1:] {
+		numMap[ycol] = make([]float64, 0)
+	}
+	strKey := ycols[0]
+	var strArr []string
+	for _, alog := range logs {
+		for k, v := range alog {
+			if numMap[k] != nil {
+				floatV, err := strconv.ParseFloat(v, 10)
+				if err == nil {
+					numMap[k] = append(numMap[k], floatV)
+				} else {
+					log.DefaultLogger.Error("BuildBarGraph", "ParseFloat", err, "value", v)
+					numMap[k] = append(numMap[k], floatV)
+				}
+			}
+			if k == strKey {
+				strArr = append(strArr, v)
+			}
+		}
+	}
+	frame.Fields = append(frame.Fields, data.NewField(strKey, nil, strArr))
+	for k, v := range numMap {
+		frame.Fields = append(frame.Fields, data.NewField(k, nil, v))
+	}
+	*frames = append(*frames, frame)
+}
+
+func (ds *SlsDatasource) BuildMapGraph(logs []map[string]string, ycols []string, refId string, frames *data.Frames) {
+	frame := data.NewFrame("response")
 	strMap := make(map[string][]string)
 
 	for _, ycol := range ycols[:len(ycols)-1] {
@@ -381,7 +415,7 @@ func (ds *SlsDatasource) BuildBarGraph(logs []map[string]string, ycols []string,
 				if err == nil {
 					numArr = append(numArr, floatV)
 				} else {
-					log.DefaultLogger.Error("BuildBarGraph", "ParseFloat", err, "value", v)
+					log.DefaultLogger.Error("BuildMapGraph", "ParseFloat", err, "value", v)
 					numArr = append(numArr, floatV)
 				}
 			}
