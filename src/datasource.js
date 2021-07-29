@@ -181,7 +181,7 @@ export function replaceQueryParameters(q, options) {
                     a_1.push('"' + variable.name + '":"' + v + '"');
                 }
                 else {
-                    a_1.push('"' + v + '"');
+                    a_1.push(v);
                 }
             });
             return a_1.join(' OR ');
