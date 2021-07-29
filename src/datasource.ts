@@ -172,7 +172,7 @@ export function replaceQueryParameters(q: SLSQuery, options: DataQueryRequest<SL
           if (variable.name === variable.label) {
             a.push('"' + variable.name + '":"' + v + '"');
           } else {
-            a.push('"' + v + '"');
+            a.push(v);
           }
         });
         return a.join(' OR ');
