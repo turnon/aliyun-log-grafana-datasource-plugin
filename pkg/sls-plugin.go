@@ -511,7 +511,7 @@ func (ds *SlsDatasource) BuildTable(logs []map[string]string, xcol string, ycols
 
 	var times []time.Time
 
-	if len(ycols) == 1 && ycols[0] == "" {
+	if len(ycols) == 1 && ycols[0] == "" && len(logs) > 0 {
 		ycols = ycols[:0]
 		for k := range logs[0] {
 			if k != "__time__" && k != "__source__" {
