@@ -493,10 +493,14 @@ func (ds *SlsDatasource) BuildTimingGraph(logs []map[string]string, xcol string,
 			}
 		}
 	}
+	var frameLen int
 	for k, v := range fieldMap {
-		frame.Fields = append(frame.Fields, data.NewField(k, nil, v))
+		if len(v) > 0 {
+			frameLen = len(v)
+			frame.Fields = append(frame.Fields, data.NewField(k, nil, v))
+		}
 	}
-	if len(times) > 0 && len(frame.Fields) > 0 {
+	if len(times) == frameLen {
 		frame.Fields = append(frame.Fields, data.NewField("time", nil, times))
 	}
 	*frames = append(*frames, frame)
