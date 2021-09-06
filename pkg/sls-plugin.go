@@ -86,7 +86,7 @@ func (d *SlsDatasource) QueryData(ctx context.Context, req *backend.QueryDataReq
 		if c == len(queries) {
 			close(ch)
 		}
-		log.DefaultLogger.Info("range_ch", "refId", res.refId, "dataResponse", res.dataResponse)
+		//log.DefaultLogger.Info("range_ch", "refId", res.refId, "dataResponse", res.dataResponse)
 		response.Responses[res.refId] = res.dataResponse
 	}
 	log.DefaultLogger.Info("range_ch", "response", response)
