@@ -326,12 +326,16 @@ func (ds *SlsDatasource) BuildFlowGraph(logs []map[string]string, xcol string, y
 		}
 		return false
 	})
+	// 流图重复聚合列(错误语句) field长度不一致 crash
+	fieldSet := make(map[string]bool)
+
 	for label := range labelSet {
 		for _, t := range timeArr {
 			// 循环查 没有补0
 			exist := false
 			for _, alog := range logs {
-				if alog[xcol] == t && alog[ycols[0]] == label {
+				if !fieldSet[alog[xcol]+alog[ycols[0]]] && alog[xcol] == t && alog[ycols[0]] == label {
+					fieldSet[alog[xcol]+alog[ycols[0]]] = true
 					floatV, err := strconv.ParseFloat(alog[ycols[1]], 10)
 					if err == nil {
 						fieldMap[label] = append(fieldMap[label], floatV)
