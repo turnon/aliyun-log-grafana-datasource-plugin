@@ -307,7 +307,7 @@ func (ds *SlsDatasource) BuildFlowGraph(logs []map[string]string, xcol string, y
 		return
 	}
 	frame := data.NewFrame("response")
-	fieldMap := make(map[string][]float64)
+	fieldMap := make(map[string]map[string]float64)
 	timeSet := make(map[string]bool)
 	labelSet := make(map[string]bool)
 	for _, alog := range logs {
@@ -328,30 +328,55 @@ func (ds *SlsDatasource) BuildFlowGraph(logs []map[string]string, xcol string, y
 	})
 	// 流图重复聚合列(错误语句) field长度不一致 crash
 	fieldSet := make(map[string]bool)
-
+	/*1.0*/
+	//for label := range labelSet {
+	//	for _, t := range timeArr {
+	//		// 循环查 没有补0
+	//		exist := false
+	//		for _, alog := range logs {
+	//			if !fieldSet[alog[xcol]+alog[ycols[0]]] && alog[xcol] == t && alog[ycols[0]] == label {
+	//				fieldSet[alog[xcol]+alog[ycols[0]]] = true
+	//				floatV, err := strconv.ParseFloat(alog[ycols[1]], 10)
+	//				if err == nil {
+	//					fieldMap[label] = append(fieldMap[label], floatV)
+	//				} else {
+	//					log.DefaultLogger.Error("BuildFlowGraph", "ParseFloat", err, "value", alog[ycols[1]])
+	//					fieldMap[label] = append(fieldMap[label], 0)
+	//				}
+	//				exist = true
+	//			}
+	//		}
+	//		if !exist {
+	//			fieldMap[label] = append(fieldMap[label], 0)
+	//		}
+	//	}
+	//}
+	/*2.0
+	先补0再覆盖
+	*/
+	for label := range labelSet {
+		fieldMap[label] = make(map[string]float64)
+	}
 	for label := range labelSet {
 		for _, t := range timeArr {
-			// 循环查 没有补0
-			exist := false
-			for _, alog := range logs {
-				if !fieldSet[alog[xcol]+alog[ycols[0]]] && alog[xcol] == t && alog[ycols[0]] == label {
-					fieldSet[alog[xcol]+alog[ycols[0]]] = true
-					floatV, err := strconv.ParseFloat(alog[ycols[1]], 10)
-					if err == nil {
-						fieldMap[label] = append(fieldMap[label], floatV)
-					} else {
-						log.DefaultLogger.Error("BuildFlowGraph", "ParseFloat", err, "value", alog[ycols[1]])
-						fieldMap[label] = append(fieldMap[label], 0)
-					}
-					exist = true
-				}
-			}
-			if !exist {
-				fieldMap[label] = append(fieldMap[label], 0)
+			fieldMap[label][t] = 0
+		}
+	}
+	for _, alog := range logs {
+		label := alog[ycols[0]]
+		t := alog[xcol]
+		if !fieldSet[t+label] {
+			fieldSet[t+label] = true
+			floatV, err := strconv.ParseFloat(alog[ycols[1]], 10)
+			if err == nil {
+				fieldMap[label][t] = floatV
+			} else {
+				log.DefaultLogger.Error("BuildFlowGraph", "ParseFloat", err, "value", alog[ycols[1]])
+				fieldMap[label][t] = 0
 			}
 		}
 	}
-
+	/*end*/
 	var frameLen int
 	for k, v := range fieldMap {
 		if len(v) > 0 {
@@ -359,7 +384,7 @@ func (ds *SlsDatasource) BuildFlowGraph(logs []map[string]string, xcol string, y
 				frameLen = len(v)
 			}
 			if len(v) == frameLen {
-				frame.Fields = append(frame.Fields, data.NewField(k, nil, v))
+				frame.Fields = append(frame.Fields, data.NewField(k, nil, mapToSlice(timeArr, v)))
 			}
 		}
 	}
@@ -665,4 +690,12 @@ func (ds *SlsDatasource) BuildTrace(logs []map[string]string, frames *data.Frame
 	frame.Fields = append(frame.Fields, data.NewField("statusMessage", nil, statusMessage))
 	frame.Fields = append(frame.Fields, data.NewField("logs", nil, logs1))
 	*frames = append(*frames, frame)
+}
+
+func mapToSlice(timeArr []string, m map[string]float64) []float64 {
+	s := make([]float64, 0, len(timeArr))
+	for _, v := range timeArr {
+		s = append(s, m[v])
+	}
+	return s
 }
