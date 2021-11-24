@@ -3,7 +3,7 @@
 
 ## 安装 
 
-依赖 `Grafana 7.0` 及以上版本 , `Grafana 7.0` 以下请使用 [1.0版本](releases/tag/1.0) 
+依赖 `Grafana 7.0` 及以上版本 , `Grafana 7.0` 以下请使用 [1.0版本](github.com/aliyun/aliyun-log-grafana-datasource-plugin/releases/tag/1.0) 
 
 下载本插件到grafana插件目录下 , 然后重启grafana
 
