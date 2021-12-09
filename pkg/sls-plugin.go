@@ -618,7 +618,7 @@ func (ds *SlsDatasource) BuildLogs(logs []map[string]string, frames *data.Frames
 				}
 				times = append(times, time.Unix(int64(floatValue), 0))
 			}
-			message = message + k + "=" + strconv.Quote(v) + " "
+			message = message + k + `="` + strings.ReplaceAll(v, `"`, `'`) + `" `
 		}
 		values = append(values, message)
 	}
