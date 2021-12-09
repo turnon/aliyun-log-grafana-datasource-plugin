@@ -60,7 +60,9 @@ Y轴设置为`c,c1` (**多列用逗号分隔**)
 
 Query 类型变量
 
-如果开启 Multi-value 可以设置多选查询
+如果开启 Multi-value 可以设置多选查询 
+
+**注:多选实现为用OR连接，如果语句有多个变量AND，变量两边需要加括号($VariableName)，否则OR和AND会混一起**
 
 如果 Name 和 Label 一致 可以按字段索引查询
 
