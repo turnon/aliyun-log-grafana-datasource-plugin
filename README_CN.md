@@ -3,7 +3,7 @@
 
 ## 安装 
 
-依赖 `Grafana 7.0` 及以上版本 , `Grafana 7.0` 以下请使用 [1.0版本](https://github.com/aliyun/aliyun-log-grafana-datasource-plugin/releases/tag/1.0) 
+依赖 `Grafana 8.0` 及以上版本 , `Grafana 8.0` 以下请使用 [1.0版本](https://github.com/aliyun/aliyun-log-grafana-datasource-plugin/releases/tag/1.0) 
 
 下载本插件到grafana插件目录下 , 然后重启grafana
 
@@ -57,6 +57,8 @@ Y轴设置为`c,c1` (**多列用逗号分隔**)
 在 dashboard 面板右上角点击 Dashboard settings, 选择 Variables
 
 引用变量 `$VariableName`
+
+变量查询语句中有双引号，需要转义成```\"```
 
 Query 类型变量
 
