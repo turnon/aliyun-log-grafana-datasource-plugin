@@ -156,8 +156,11 @@ export function mapToTextValue(result: any) {
 }
 
 export function replaceQueryParameters(q: SLSQuery, options: DataQueryRequest<SLSQuery>) {
-  if (typeof q.query === 'undefined') {
-    q.query = '';
+  // if (typeof q.query === 'undefined') {
+  //   q.query = '';
+  // }
+  if (q.hide) {
+    return;
   }
   let query = getTemplateSrv().replace(
     q.query,
