@@ -223,7 +223,7 @@ __source__字段默认会被过滤掉，需要用as起别名
 
 ### provision 配置
 
----
+```yml
 apiVersion: 1
 
 datasources:
@@ -237,7 +237,7 @@ datasources:
       accessKeyId: xxxx
       accessKeySecret: xxxxx
     editable: true
----
+```
 
 
 ### 钉钉群
