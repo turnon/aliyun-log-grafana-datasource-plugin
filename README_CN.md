@@ -242,7 +242,7 @@ datasources:
 
 ### 钉钉群
 
-![image](https://testossconnector.oss-cn-hangzhou.aliyuncs.com/dingdinggroup.png)
+<img src="https://testossconnector.oss-cn-hangzhou.aliyuncs.com/dingdinggroup.png" style="max-width: 30%;" align=center />
 
 
 
