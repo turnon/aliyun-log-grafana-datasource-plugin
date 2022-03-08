@@ -221,6 +221,25 @@ X轴 设置为`trace`
 
 __source__字段默认会被过滤掉，需要用as起别名
 
+### provision 配置
+
+---
+apiVersion: 1
+
+datasources:
+  - name: LogService
+    type: aliyun-log-service-datasource
+    url: http://xxxxx.log.aliyuncs.com
+    jsonData:
+      project: xxxxx
+      logstore: xxxxx
+    secureJsonData:
+      accessKeyId: xxxx
+      accessKeySecret: xxxxx
+    editable: true
+---
+
+
 ### 钉钉群
 
 ![image](https://testossconnector.oss-cn-hangzhou.aliyuncs.com/dingdinggroup.png)
