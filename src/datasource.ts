@@ -10,7 +10,7 @@ import {
   MutableDataFrame,
   Vector,
 } from '@grafana/data';
-import { SLSDataSourceOptions, SlsLog, SLSQuery } from './types';
+import { SLSDataSourceOptions, SLSQuery } from './types';
 import { DataSourceWithBackend, getBackendSrv, getTemplateSrv } from '@grafana/runtime';
 import _ from 'lodash';
 import { map } from 'rxjs/operators';
@@ -75,13 +75,17 @@ function transTags(result: Map<string, Vector>, i: number): TraceKeyValuePair[] 
 
 function transLogs(result: Map<string, Vector>, i: number): TraceLog[] {
   let traceLogs: TraceLog[] = [];
-  const slsLogs = JSON.parse(result.get('logs')?.get(i)) as SlsLog[];
+  const slsLogs = JSON.parse(result.get('logs')?.get(i)) as Object[];
   for (const slsLog of slsLogs) {
-    const attributeArray = Array.from(Object.entries(slsLog.attribute), ([name, value]) => valueToTag(name, value));
-    traceLogs.push({
-      timestamp: slsLog.time / 1000000,
-      fields: attributeArray,
-    });
+    const logMap = new Map(Object.entries(slsLog));
+    const attributeArray = Array.from(Object.entries(slsLog), ([name, value]) => valueToTag(name, value));
+    let time = logMap.get('time');
+    if (time !== undefined) {
+      traceLogs.push({
+        timestamp: Number(time) / 1000000,
+        fields: attributeArray,
+      });
+    }
   }
   return traceLogs;
 }
