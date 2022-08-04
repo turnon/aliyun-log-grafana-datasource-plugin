@@ -265,9 +265,9 @@ func (ds *SlsDatasource) QueryLogs(ch chan Result, query backend.DataQuery, clie
 		}
 		return
 	}
-	if !strings.Contains(queryInfo.Query, "|") && len(queryInfo.Ycol) == 0 {
+	if !strings.Contains(queryInfo.Query, "|") {
 		log.DefaultLogger.Info("BuildLogs")
-		ds.BuildLogs(logs, &frames)
+		ds.BuildLogs(logs, ycols, &frames)
 		response.Frames = frames
 		ch <- Result{
 			refId:        refId,
@@ -502,7 +502,7 @@ func (ds *SlsDatasource) BuildPieGraph(logs []map[string]string, ycols []string,
 
 func (ds *SlsDatasource) BuildTimingGraph(logs []map[string]string, xcol string, ycols []string, frames *data.Frames) {
 	ds.SortLogs(logs, xcol)
-	frame := data.NewFrame("response")
+	frame := data.NewFrame("response1")
 	fieldMap := make(map[string][]float64)
 	var times []time.Time
 	for _, ycol := range ycols {
@@ -548,7 +548,7 @@ func (ds *SlsDatasource) BuildTimingGraph(logs []map[string]string, xcol string,
 }
 
 func (ds *SlsDatasource) BuildTable(logs []map[string]string, xcol string, ycols []string, frames *data.Frames) {
-	frame := data.NewFrame("response")
+	frame := data.NewFrame("response1")
 
 	fieldMap := make(map[string][]string)
 
@@ -593,12 +593,15 @@ func (ds *SlsDatasource) BuildTable(logs []map[string]string, xcol string, ycols
 	*frames = append(*frames, frame)
 }
 
-func (ds *SlsDatasource) BuildLogs(logs []map[string]string, frames *data.Frames) {
+func (ds *SlsDatasource) BuildLogs(logs []map[string]string, ycols []string, frames *data.Frames) {
 	frame := data.NewFrame("response")
 	frame.Meta = &data.FrameMeta{
 		PreferredVisualization: data.VisTypeLogs,
 	}
-
+	yset := make(map[string]bool)
+	for _, ycol := range ycols {
+		yset[ycol] = true
+	}
 	var times []time.Time
 	var values []string
 	for _, alog := range logs {
@@ -618,7 +621,13 @@ func (ds *SlsDatasource) BuildLogs(logs []map[string]string, frames *data.Frames
 				}
 				times = append(times, time.Unix(int64(floatValue), 0))
 			}
-			message = message + k + `="` + strings.ReplaceAll(v, `"`, `'`) + `" `
+			if len(ycols) > 0 {
+				if yset[k] {
+					message = message + k + `="` + strings.ReplaceAll(v, `"`, `'`) + `" `
+				}
+			} else {
+				message = message + k + `="` + strings.ReplaceAll(v, `"`, `'`) + `" `
+			}
 		}
 		values = append(values, message)
 	}

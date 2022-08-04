@@ -212,7 +212,7 @@ X轴 设置为`trace`
 
 在`[plugins]`标签下设置参数
 
-`allow_loading_unsigned_plugins = aliyun-log-service-datasource,grafana-log-service-datasource`
+`allow_loading_unsigned_plugins = aliyun-log-service-datasource`
 
 
 ### 添加source变量
