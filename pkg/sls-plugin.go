@@ -86,10 +86,8 @@ func (d *SlsDatasource) QueryData(ctx context.Context, req *backend.QueryDataReq
 		if c == len(queries) {
 			close(ch)
 		}
-		//log.DefaultLogger.Info("range_ch", "refId", res.refId, "dataResponse", res.dataResponse)
 		response.Responses[res.refId] = res.dataResponse
 	}
-	log.DefaultLogger.Info("range_ch", "response", response)
 	return response, nil
 }
 
@@ -213,7 +211,7 @@ func (ds *SlsDatasource) QueryLogs(ch chan Result, query backend.DataQuery, clie
 	response := backend.DataResponse{}
 	refId := query.RefID
 	queryInfo := &QueryInfo{}
-	err := json.Unmarshal([]byte(query.JSON), &queryInfo)
+	err := json.Unmarshal(query.JSON, &queryInfo)
 	if err != nil {
 		log.DefaultLogger.Error("Unmarshal queryInfo", "refId", refId, "error", err)
 		ch <- Result{
@@ -326,34 +324,7 @@ func (ds *SlsDatasource) BuildFlowGraph(logs []map[string]string, xcol string, y
 		}
 		return false
 	})
-	// 流图重复聚合列(错误语句) field长度不一致 crash
 	fieldSet := make(map[string]bool)
-	/*1.0*/
-	//for label := range labelSet {
-	//	for _, t := range timeArr {
-	//		// 循环查 没有补0
-	//		exist := false
-	//		for _, alog := range logs {
-	//			if !fieldSet[alog[xcol]+alog[ycols[0]]] && alog[xcol] == t && alog[ycols[0]] == label {
-	//				fieldSet[alog[xcol]+alog[ycols[0]]] = true
-	//				floatV, err := strconv.ParseFloat(alog[ycols[1]], 10)
-	//				if err == nil {
-	//					fieldMap[label] = append(fieldMap[label], floatV)
-	//				} else {
-	//					log.DefaultLogger.Error("BuildFlowGraph", "ParseFloat", err, "value", alog[ycols[1]])
-	//					fieldMap[label] = append(fieldMap[label], 0)
-	//				}
-	//				exist = true
-	//			}
-	//		}
-	//		if !exist {
-	//			fieldMap[label] = append(fieldMap[label], 0)
-	//		}
-	//	}
-	//}
-	/*2.0
-	先补0再覆盖
-	*/
 	for label := range labelSet {
 		fieldMap[label] = make(map[string]float64)
 	}
@@ -376,7 +347,6 @@ func (ds *SlsDatasource) BuildFlowGraph(logs []map[string]string, xcol string, y
 			}
 		}
 	}
-	/*end*/
 	var frameLen int
 	for k, v := range fieldMap {
 		if len(v) > 0 {
@@ -638,6 +608,8 @@ func (ds *SlsDatasource) BuildLogs(logs []map[string]string, ycols []string, fra
 	*frames = append(*frames, frame)
 }
 
+// BuildTrace
+// *| select traceID,spanID,parentSpanID,service,host,resource,attribute,statusCode,statusMessage,logs,name,start,duration limit 100
 func (ds *SlsDatasource) BuildTrace(logs []map[string]string, frames *data.Frames) {
 	frame := data.NewFrame("response")
 	frame.Meta = &data.FrameMeta{

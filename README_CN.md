@@ -1,5 +1,10 @@
 ## 阿里云日志服务数据源 
 
+## 编译
+
+```
+yarn build
+```
 
 ## 安装 
 
@@ -229,7 +234,7 @@ apiVersion: 1
 datasources:
   - name: LogService
     type: aliyun-log-service-datasource
-    url: http://xxxxx.log.aliyuncs.com
+    url: http://cn-hangzhou.log.aliyuncs.com
     jsonData:
       project: xxxxx
       logstore: xxxxx
