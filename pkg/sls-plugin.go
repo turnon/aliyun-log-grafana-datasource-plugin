@@ -3,9 +3,11 @@ package main
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"sort"
 	"strconv"
 	"strings"
+	"sync"
 	"time"
 
 	sls "github.com/aliyun/aliyun-log-go-sdk"
@@ -52,12 +54,12 @@ func (d *SlsDatasource) Dispose() {
 // req contains the queries []DataQuery (where each query contains RefID as a unique identifier).
 // The QueryDataResponse contains a map of RefID to the response for each query, and each response
 // contains Frames ([]*Frame).
-func (d *SlsDatasource) QueryData(ctx context.Context, req *backend.QueryDataRequest) (*backend.QueryDataResponse, error) {
+func (d *SlsDatasource) QueryData(ctx context.Context, req *backend.QueryDataRequest) (res *backend.QueryDataResponse, err error) {
 	//log.DefaultLogger.Info("QueryData called", "request", req)
 
 	config, err := LoadSettings(req.PluginContext)
 	if err != nil {
-		return nil, err
+		return
 	}
 
 	client := &sls.Client{
@@ -73,21 +75,35 @@ func (d *SlsDatasource) QueryData(ctx context.Context, req *backend.QueryDataReq
 	queries := req.Queries
 
 	ch := make(chan Result, len(queries))
-	log.DefaultLogger.Info("len(queries)", "len", len(queries))
 
+	defer func() {
+		close(ch)
+		if r := recover(); r != nil {
+			switch r.(type) {
+			case string:
+				err = errors.New(r.(string))
+			case error:
+				err = r.(error)
+			}
+			log.DefaultLogger.Error("QueryData recover", "error", err)
+		}
+	}()
+
+	log.DefaultLogger.Info("len(queries)", "len", len(queries))
+	wg := sync.WaitGroup{}
 	for _, query := range queries {
+		wg.Add(1)
 		log.DefaultLogger.Info("range_queries", "RefID", query.RefID,
 			"JSON", query.JSON, "QueryType", query.QueryType)
 		go d.QueryLogs(ch, query, client, config)
 	}
-	c := 0
-	for res := range ch {
-		c = c + 1
-		if c == len(queries) {
-			close(ch)
+	go func(chan Result) {
+		for res := range ch {
+			response.Responses[res.refId] = res.dataResponse
+			wg.Done()
 		}
-		response.Responses[res.refId] = res.dataResponse
-	}
+	}(ch)
+	wg.Wait()
 	return response, nil
 }
 
@@ -211,9 +227,27 @@ func (ds *SlsDatasource) QueryLogs(ch chan Result, query backend.DataQuery, clie
 	response := backend.DataResponse{}
 	refId := query.RefID
 	queryInfo := &QueryInfo{}
+
+	defer func() {
+		if r := recover(); r != nil {
+			switch r.(type) {
+			case string:
+				response.Error = errors.New(r.(string))
+			case error:
+				response.Error = r.(error)
+			}
+			log.DefaultLogger.Error("QueryLogs recover", "refId", refId, "error", response.Error)
+			ch <- Result{
+				refId:        refId,
+				dataResponse: response,
+			}
+		}
+	}()
+
 	err := json.Unmarshal(query.JSON, &queryInfo)
 	if err != nil {
 		log.DefaultLogger.Error("Unmarshal queryInfo", "refId", refId, "error", err)
+		response.Error = err
 		ch <- Result{
 			refId:        refId,
 			dataResponse: response,
