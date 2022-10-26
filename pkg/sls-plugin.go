@@ -710,7 +710,7 @@ func mapToSlice(timeArr []string, m map[string]float64) []float64 {
 }
 
 func toTime(sTime string) (t time.Time) {
-	if v, error := strconv.ParseFloat(sTime, 64); error == nil {
+	if v, err := strconv.ParseFloat(sTime, 64); err == nil {
 		if len(sTime) == 13 {
 			t = time.Unix(int64(v)/1000, 0)
 		} else {
@@ -718,7 +718,7 @@ func toTime(sTime string) (t time.Time) {
 		}
 		return
 	}
-	re := regexp.MustCompile(`(\d{4})\S(\d{1,})\S(\d{1,})[\sT](\d{1,})\S(\d{1,})\S(\d{1,}).*`)
+	re := regexp.MustCompile(`(\d{4})\S(\d{2})\S(\d{2})[\sT](\d{2})\S(\d{2})\S(\d{2}).*`)
 	matched := re.FindAllStringSubmatch(sTime, -1)
 	if matched != nil {
 		s := fmt.Sprintf("%s-%s-%s %s:%s:%s", matched[0][1], matched[0][2], matched[0][3],
