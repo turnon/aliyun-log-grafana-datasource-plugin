@@ -4,6 +4,8 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"fmt"
+	"regexp"
 	"sort"
 	"strconv"
 	"strings"
@@ -395,9 +397,7 @@ func (ds *SlsDatasource) BuildFlowGraph(logs []map[string]string, xcol string, y
 
 	var times []time.Time
 	for _, k := range timeArr {
-		v, _ := strconv.ParseFloat(k, 9)
-		t := time.Unix(int64(v), 0)
-		times = append(times, t)
+		times = append(times, toTime(k))
 	}
 	if len(times) == frameLen {
 		frame.Fields = append(frame.Fields, data.NewField("time", nil, times))
@@ -524,13 +524,7 @@ func (ds *SlsDatasource) BuildTimingGraph(logs []map[string]string, xcol string,
 				}
 			}
 			if xcol != "" && xcol == k {
-				floatValue, err := strconv.ParseFloat(v, 9)
-				if err != nil {
-					log.DefaultLogger.Error("BuildTimingGraph", "ParseTime", err, "value", v)
-					continue
-				}
-				t := time.Unix(int64(floatValue), 0)
-				times = append(times, t)
+				times = append(times, toTime(v))
 			}
 		}
 	}
@@ -713,4 +707,25 @@ func mapToSlice(timeArr []string, m map[string]float64) []float64 {
 		s = append(s, m[v])
 	}
 	return s
+}
+
+func toTime(sTime string) (t time.Time) {
+	if v, error := strconv.ParseFloat(sTime, 64); error == nil {
+		if len(sTime) == 13 {
+			t = time.Unix(int64(v)/1000, 0)
+		} else {
+			t = time.Unix(int64(v), 0)
+		}
+		return
+	}
+	re := regexp.MustCompile(`(\d{4})\S(\d{1,})\S(\d{1,})[\sT](\d{1,})\S(\d{1,})\S(\d{1,}).*`)
+	matched := re.FindAllStringSubmatch(sTime, -1)
+	if matched != nil {
+		s := fmt.Sprintf("%s-%s-%s %s:%s:%s", matched[0][1], matched[0][2], matched[0][3],
+			matched[0][4], matched[0][5], matched[0][6])
+
+		local, _ := time.LoadLocation("Asia/Shanghai")
+		t, _ = time.ParseInLocation("2006-01-02 15:04:05", s, local)
+	}
+	return
 }
