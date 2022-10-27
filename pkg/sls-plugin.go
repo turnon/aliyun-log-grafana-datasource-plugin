@@ -48,7 +48,7 @@ type SlsDatasource struct{}
 // Dispose here tells plugin SDK that plugin wants to clean up resources when a new instance
 // created. As soon as datasource settings change detected by SDK old datasource instance will
 // be disposed and a new one will be created using NewSampleDatasource factory function.
-func (d *SlsDatasource) Dispose() {
+func (ds *SlsDatasource) Dispose() {
 	// Clean up datasource instance resources.
 }
 
@@ -56,7 +56,7 @@ func (d *SlsDatasource) Dispose() {
 // req contains the queries []DataQuery (where each query contains RefID as a unique identifier).
 // The QueryDataResponse contains a map of RefID to the response for each query, and each response
 // contains Frames ([]*Frame).
-func (d *SlsDatasource) QueryData(ctx context.Context, req *backend.QueryDataRequest) (res *backend.QueryDataResponse, err error) {
+func (ds *SlsDatasource) QueryData(ctx context.Context, req *backend.QueryDataRequest) (res *backend.QueryDataResponse, err error) {
 	//log.DefaultLogger.Info("QueryData called", "request", req)
 
 	config, err := LoadSettings(req.PluginContext)
@@ -97,7 +97,7 @@ func (d *SlsDatasource) QueryData(ctx context.Context, req *backend.QueryDataReq
 		wg.Add(1)
 		log.DefaultLogger.Info("range_queries", "RefID", query.RefID,
 			"JSON", query.JSON, "QueryType", query.QueryType)
-		go d.QueryLogs(ch, query, client, config)
+		go ds.QueryLogs(ch, query, client, config)
 	}
 	go func(chan Result) {
 		for res := range ch {
@@ -113,7 +113,7 @@ func (d *SlsDatasource) QueryData(ctx context.Context, req *backend.QueryDataReq
 // The main use case for these health checks is the test button on the
 // datasource configuration page which allows users to verify that
 // a datasource is working as expected.
-func (d *SlsDatasource) CheckHealth(_ context.Context, req *backend.CheckHealthRequest) (*backend.CheckHealthResult, error) {
+func (ds *SlsDatasource) CheckHealth(_ context.Context, req *backend.CheckHealthRequest) (*backend.CheckHealthResult, error) {
 	log.DefaultLogger.Info("CheckHealth called", "request", req)
 
 	config, err := LoadSettings(req.PluginContext)
@@ -147,7 +147,7 @@ func (d *SlsDatasource) CheckHealth(_ context.Context, req *backend.CheckHealthR
 
 // SubscribeStream is called when a client wants to connect to a stream. This callback
 // allows sending the first message.
-func (d *SlsDatasource) SubscribeStream(_ context.Context, req *backend.SubscribeStreamRequest) (*backend.SubscribeStreamResponse, error) {
+func (ds *SlsDatasource) SubscribeStream(_ context.Context, req *backend.SubscribeStreamRequest) (*backend.SubscribeStreamResponse, error) {
 	log.DefaultLogger.Info("SubscribeStream called", "request", req)
 
 	status := backend.SubscribeStreamStatusPermissionDenied
@@ -162,7 +162,7 @@ func (d *SlsDatasource) SubscribeStream(_ context.Context, req *backend.Subscrib
 
 // RunStream is called once for any open channel.  Results are shared with everyone
 // subscribed to the same channel.
-func (d *SlsDatasource) RunStream(ctx context.Context, req *backend.RunStreamRequest, sender *backend.StreamSender) error {
+func (ds *SlsDatasource) RunStream(ctx context.Context, req *backend.RunStreamRequest, sender *backend.StreamSender) error {
 	log.DefaultLogger.Info("RunStream called", "request", req)
 
 	// Create the same data frame as for query data.
@@ -199,7 +199,7 @@ func (d *SlsDatasource) RunStream(ctx context.Context, req *backend.RunStreamReq
 }
 
 // PublishStream is called when a client sends a message to the stream.
-func (d *SlsDatasource) PublishStream(_ context.Context, req *backend.PublishStreamRequest) (*backend.PublishStreamResponse, error) {
+func (ds *SlsDatasource) PublishStream(_ context.Context, req *backend.PublishStreamRequest) (*backend.PublishStreamResponse, error) {
 	log.DefaultLogger.Info("PublishStream called", "request", req)
 
 	// Do not allow publishing at all.
@@ -210,11 +210,11 @@ func (d *SlsDatasource) PublishStream(_ context.Context, req *backend.PublishStr
 
 func (ds *SlsDatasource) SortLogs(logs []map[string]string, col string) {
 	sort.Slice(logs, func(i, j int) bool {
-		f1, err := strconv.ParseFloat(logs[i][col], 10)
+		f1, err := strconv.ParseFloat(logs[i][col], 64)
 		if err != nil {
 			backend.Logger.Error("SortLogs1", "error ", err)
 		}
-		f2, err := strconv.ParseFloat(logs[j][col], 10)
+		f2, err := strconv.ParseFloat(logs[j][col], 64)
 		if err != nil {
 			backend.Logger.Error("SortLogs2", "error ", err)
 		}
@@ -353,8 +353,8 @@ func (ds *SlsDatasource) BuildFlowGraph(logs []map[string]string, xcol string, y
 		timeArr = append(timeArr, k)
 	}
 	sort.Slice(timeArr, func(i, j int) bool {
-		iValue, _ := strconv.ParseFloat(timeArr[i], 9)
-		jValue, _ := strconv.ParseFloat(timeArr[j], 9)
+		iValue, _ := strconv.ParseFloat(timeArr[i], 64)
+		jValue, _ := strconv.ParseFloat(timeArr[j], 64)
 		if iValue < jValue {
 			return true
 		}
@@ -374,7 +374,7 @@ func (ds *SlsDatasource) BuildFlowGraph(logs []map[string]string, xcol string, y
 		t := alog[xcol]
 		if !fieldSet[t+label] {
 			fieldSet[t+label] = true
-			floatV, err := strconv.ParseFloat(alog[ycols[1]], 10)
+			floatV, err := strconv.ParseFloat(alog[ycols[1]], 64)
 			if err == nil {
 				fieldMap[label][t] = floatV
 			} else {
@@ -417,7 +417,7 @@ func (ds *SlsDatasource) BuildBarGraph(logs []map[string]string, ycols []string,
 	for _, alog := range logs {
 		for k, v := range alog {
 			if numMap[k] != nil {
-				floatV, err := strconv.ParseFloat(v, 10)
+				floatV, err := strconv.ParseFloat(v, 64)
 				if err == nil {
 					numMap[k] = append(numMap[k], floatV)
 				} else {
@@ -452,7 +452,7 @@ func (ds *SlsDatasource) BuildMapGraph(logs []map[string]string, ycols []string,
 				strMap[k] = append(strMap[k], v)
 			}
 			if k == numKey {
-				floatV, err := strconv.ParseFloat(v, 10)
+				floatV, err := strconv.ParseFloat(v, 64)
 				if err == nil {
 					numArr = append(numArr, floatV)
 				} else {
@@ -483,7 +483,7 @@ func (ds *SlsDatasource) BuildPieGraph(logs []map[string]string, ycols []string,
 		exist := false
 		for _, alog := range logs {
 			if alog[ycols[0]] == label {
-				floatV, err := strconv.ParseFloat(alog[ycols[1]], 10)
+				floatV, err := strconv.ParseFloat(alog[ycols[1]], 64)
 				if err == nil {
 					fieldMap[label] = append(fieldMap[label], floatV)
 				} else {
@@ -509,13 +509,21 @@ func (ds *SlsDatasource) BuildTimingGraph(logs []map[string]string, xcol string,
 	frame := data.NewFrame("response1")
 	fieldMap := make(map[string][]float64)
 	var times []time.Time
-	for _, ycol := range ycols {
-		fieldMap[ycol] = make([]float64, 0)
+	if len(ycols) == 1 && ycols[0] == "" && len(logs) > 0 {
+		for k, v := range logs[0] {
+			if _, err := strconv.ParseFloat(v, 64); err == nil && len(v) < 10 {
+				fieldMap[k] = make([]float64, 0)
+			}
+		}
+	} else {
+		for _, ycol := range ycols {
+			fieldMap[ycol] = make([]float64, 0)
+		}
 	}
 	for _, alog := range logs {
 		for k, v := range alog {
 			if fieldMap[k] != nil {
-				floatV, err := strconv.ParseFloat(v, 10)
+				floatV, err := strconv.ParseFloat(v, 64)
 				if err == nil {
 					fieldMap[k] = append(fieldMap[k], floatV)
 				} else {
@@ -572,7 +580,7 @@ func (ds *SlsDatasource) BuildTable(logs []map[string]string, xcol string, ycols
 				fieldMap[k] = append(fieldMap[k], v)
 			}
 			if xcol != "" && xcol == k {
-				floatValue, err := strconv.ParseFloat(v, 9)
+				floatValue, err := strconv.ParseFloat(v, 64)
 				if err != nil {
 					log.DefaultLogger.Error("BuildTable", "ParseTime", err)
 					continue
@@ -612,14 +620,14 @@ func (ds *SlsDatasource) BuildLogs(logs []map[string]string, ycols []string, fra
 		for _, k := range keys {
 			v := alog[k]
 			if k == "__time__" {
-				floatValue, err := strconv.ParseFloat(v, 9)
+				floatValue, err := strconv.ParseFloat(v, 64)
 				if err != nil {
 					log.DefaultLogger.Error("BuildLogs", "ParseTime", err)
 					continue
 				}
 				times = append(times, time.Unix(int64(floatValue), 0))
 			}
-			if len(ycols) > 0 {
+			if len(ycols) > 0 && ycols[0] != "" {
 				if yset[k] {
 					message = message + k + `="` + strings.ReplaceAll(v, `"`, `'`) + `" `
 				}
@@ -631,7 +639,7 @@ func (ds *SlsDatasource) BuildLogs(logs []map[string]string, ycols []string, fra
 	}
 	frame.Fields = append(frame.Fields,
 		data.NewField("time", nil, times),
-		data.NewField("values", nil, values),
+		data.NewField("message", nil, values),
 	)
 	*frames = append(*frames, frame)
 }
@@ -669,14 +677,14 @@ func (ds *SlsDatasource) BuildTrace(logs []map[string]string, frames *data.Frame
 		statusMessage = append(statusMessage, alog["statusMessage"])
 		logs1 = append(logs1, alog["logs"])
 		operationName = append(operationName, alog["name"])
-		startTimeV, err := strconv.ParseFloat(alog["start"], 16)
+		startTimeV, err := strconv.ParseFloat(alog["start"], 64)
 		if err != nil {
 			log.DefaultLogger.Error("BuildTrace", "ParseFloat", err)
 			startTime = append(startTime, 0)
 		} else {
 			startTime = append(startTime, startTimeV/1000)
 		}
-		durationV, err := strconv.ParseFloat(alog["duration"], 16)
+		durationV, err := strconv.ParseFloat(alog["duration"], 64)
 		if err != nil {
 			log.DefaultLogger.Error("BuildTrace", "ParseFloat", err)
 			duration = append(duration, 0)
