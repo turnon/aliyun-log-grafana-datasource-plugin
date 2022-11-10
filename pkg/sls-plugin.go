@@ -726,7 +726,7 @@ func toTime(sTime string) (t time.Time) {
 		}
 		return
 	}
-	re := regexp.MustCompile(`(\d{4})\S(\d{2})\S(\d{2})[\sT](\d{2})\S(\d{2})\S(\d{2}).*`)
+	re := regexp.MustCompile(`(\d{4})\S(\d{2})\S(\d{2})[\s\S](\d{2})\S(\d{2})\S(\d{2}).*`)
 	matched := re.FindAllStringSubmatch(sTime, -1)
 	if matched != nil {
 		s := fmt.Sprintf("%s-%s-%s %s:%s:%s", matched[0][1], matched[0][2], matched[0][3],

@@ -30,7 +30,7 @@ export class SLSDataSource extends DataSourceWithBackend<SLSQuery, SLSDataSource
     return super.query(options);
   }
 
-  metricFindQuery(query: SLSQuery, options?: any) {
+  metricFindQuery(query: SLSQuery|string, options?: any) {
     const data = {
       from: options.range.from.valueOf().toString(),
       to: options.range.to.valueOf().toString(),
@@ -159,15 +159,18 @@ export function mapToTextValue(result: any) {
   });
 }
 
-export function replaceQueryParameters(q: SLSQuery, options: DataQueryRequest<SLSQuery>) {
-  // if (typeof q.query === 'undefined') {
-  //   q.query = '';
-  // }
-  if (q.hide) {
+export function replaceQueryParameters(q: SLSQuery|string, options: DataQueryRequest<SLSQuery>) {
+  if (typeof q !== "string" && q.hide) {
     return;
   }
+  let varQuery;
+  if (typeof q === "string") {
+    varQuery = q
+  }else {
+    varQuery = q.query
+  }
   let query = getTemplateSrv().replace(
-    q.query,
+      varQuery,
     options.scopedVars,
     function (
       value: { forEach: (arg0: (v: string) => void) => void; join: (arg0: string) => void },
