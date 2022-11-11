@@ -353,9 +353,9 @@ func (ds *SlsDatasource) BuildFlowGraph(logs []map[string]string, xcol string, y
 		timeArr = append(timeArr, k)
 	}
 	sort.Slice(timeArr, func(i, j int) bool {
-		iValue, _ := strconv.ParseFloat(timeArr[i], 64)
-		jValue, _ := strconv.ParseFloat(timeArr[j], 64)
-		if iValue < jValue {
+		iValue := toTime(timeArr[i])
+		jValue := toTime(timeArr[j])
+		if iValue.Unix() < jValue.Unix() {
 			return true
 		}
 		return false
