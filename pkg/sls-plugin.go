@@ -510,10 +510,13 @@ func (ds *SlsDatasource) BuildTimingGraph(logs []map[string]string, xcol string,
 	fieldMap := make(map[string][]float64)
 	var times []time.Time
 	if len(ycols) == 1 && ycols[0] == "" && len(logs) > 0 {
-		for k, v := range logs[0] {
-			if _, err := strconv.ParseFloat(v, 64); err == nil && len(v) < 10 {
-				fieldMap[k] = make([]float64, 0)
+		for k, _ := range logs[0] {
+			//if _, err := strconv.ParseFloat(v, 64); err == nil && len(v) < 10 {
+			//}
+			if k == "__time__" || k == "__source__" || k == xcol {
+				continue
 			}
+			fieldMap[k] = make([]float64, 0)
 		}
 	} else {
 		for _, ycol := range ycols {
