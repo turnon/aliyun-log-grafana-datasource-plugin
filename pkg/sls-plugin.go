@@ -277,6 +277,18 @@ func (ds *SlsDatasource) QueryLogs(ch chan Result, query backend.DataQuery, clie
 		return
 	}
 	logs := getLogsResp.Logs
+	c := &Contents{}
+	err = json.Unmarshal([]byte(getLogsResp.Contents), &c)
+	if err != nil {
+		log.DefaultLogger.Error("GetLogs ", "Contents : ", getLogsResp.Contents, "error ", err)
+		response.Error = err
+		ch <- Result{
+			refId:        refId,
+			dataResponse: response,
+		}
+		return
+	}
+	keys := c.Keys
 
 	queryInfo.Ycol = strings.Replace(queryInfo.Ycol, " ", "", -1)
 	isFlowGraph := strings.Contains(queryInfo.Ycol, "#:#")
@@ -312,22 +324,22 @@ func (ds *SlsDatasource) QueryLogs(ch chan Result, query backend.DataQuery, clie
 
 	if isFlowGraph {
 		log.DefaultLogger.Info("flow_graph")
-		ds.BuildFlowGraph(logs, xcol, ycols, refId, &frames)
+		ds.BuildFlowGraph(logs, xcol, ycols, &frames)
 	} else if xcol == "bar" {
 		log.DefaultLogger.Info("bar")
-		ds.BuildBarGraph(logs, ycols, refId, &frames)
+		ds.BuildBarGraph(logs, ycols, &frames)
 	} else if xcol == "map" {
 		log.DefaultLogger.Info("map")
-		ds.BuildMapGraph(logs, ycols, refId, &frames)
+		ds.BuildMapGraph(logs, ycols, &frames)
 	} else if xcol == "pie" {
 		log.DefaultLogger.Info("pie")
-		ds.BuildPieGraph(logs, ycols, refId, &frames)
+		ds.BuildPieGraph(logs, ycols, &frames)
 	} else if xcol != "" && xcol != "map" && xcol != "pie" && xcol != "bar" && xcol != "table" {
 		log.DefaultLogger.Info("time_graph")
-		ds.BuildTimingGraph(logs, xcol, ycols, &frames)
+		ds.BuildTimingGraph(logs, xcol, ycols, keys, &frames)
 	} else {
 		log.DefaultLogger.Info("table")
-		ds.BuildTable(logs, xcol, ycols, &frames)
+		ds.BuildTable(logs, xcol, ycols, keys, &frames)
 	}
 	response.Frames = frames
 	ch <- Result{
@@ -336,7 +348,7 @@ func (ds *SlsDatasource) QueryLogs(ch chan Result, query backend.DataQuery, clie
 	}
 }
 
-func (ds *SlsDatasource) BuildFlowGraph(logs []map[string]string, xcol string, ycols []string, refId string, frames *data.Frames) {
+func (ds *SlsDatasource) BuildFlowGraph(logs []map[string]string, xcol string, ycols []string, frames *data.Frames) {
 	if len(ycols) < 2 {
 		return
 	}
@@ -406,7 +418,7 @@ func (ds *SlsDatasource) BuildFlowGraph(logs []map[string]string, xcol string, y
 	*frames = append(*frames, frame)
 }
 
-func (ds *SlsDatasource) BuildBarGraph(logs []map[string]string, ycols []string, refId string, frames *data.Frames) {
+func (ds *SlsDatasource) BuildBarGraph(logs []map[string]string, ycols []string, frames *data.Frames) {
 	frame := data.NewFrame("response")
 	numMap := make(map[string][]float64)
 	for _, ycol := range ycols[1:] {
@@ -431,13 +443,13 @@ func (ds *SlsDatasource) BuildBarGraph(logs []map[string]string, ycols []string,
 		}
 	}
 	frame.Fields = append(frame.Fields, data.NewField(strKey, nil, strArr))
-	for k, v := range numMap {
-		frame.Fields = append(frame.Fields, data.NewField(k, nil, v))
+	for _, ycol := range ycols[1:] {
+		frame.Fields = append(frame.Fields, data.NewField(ycol, nil, numMap[ycol]))
 	}
 	*frames = append(*frames, frame)
 }
 
-func (ds *SlsDatasource) BuildMapGraph(logs []map[string]string, ycols []string, refId string, frames *data.Frames) {
+func (ds *SlsDatasource) BuildMapGraph(logs []map[string]string, ycols []string, frames *data.Frames) {
 	frame := data.NewFrame("response")
 	strMap := make(map[string][]string)
 
@@ -469,7 +481,7 @@ func (ds *SlsDatasource) BuildMapGraph(logs []map[string]string, ycols []string,
 	*frames = append(*frames, frame)
 }
 
-func (ds *SlsDatasource) BuildPieGraph(logs []map[string]string, ycols []string, refId string, frames *data.Frames) {
+func (ds *SlsDatasource) BuildPieGraph(logs []map[string]string, ycols []string, frames *data.Frames) {
 	if len(ycols) < 2 {
 		return
 	}
@@ -504,23 +516,17 @@ func (ds *SlsDatasource) BuildPieGraph(logs []map[string]string, ycols []string,
 	*frames = append(*frames, frame)
 }
 
-func (ds *SlsDatasource) BuildTimingGraph(logs []map[string]string, xcol string, ycols []string, frames *data.Frames) {
+func (ds *SlsDatasource) BuildTimingGraph(logs []map[string]string, xcol string, ycols []string, keys []string, frames *data.Frames) {
 	ds.SortLogs(logs, xcol)
 	frame := data.NewFrame("response1")
 	fieldMap := make(map[string][]float64)
 	var times []time.Time
-	if len(ycols) == 1 && ycols[0] == "" && len(logs) > 0 {
-		for k, _ := range logs[0] {
-			//if _, err := strconv.ParseFloat(v, 64); err == nil && len(v) < 10 {
-			//}
-			if k == "__time__" || k == "__source__" || k == xcol {
-				continue
-			}
-			fieldMap[k] = make([]float64, 0)
-		}
-	} else {
-		for _, ycol := range ycols {
-			fieldMap[ycol] = make([]float64, 0)
+	if len(ycols) == 1 && ycols[0] == "" && len(keys) > 0 {
+		ycols = keys
+	}
+	for _, v := range ycols {
+		if v != xcol {
+			fieldMap[v] = make([]float64, 0)
 		}
 	}
 	for _, alog := range logs {
@@ -540,14 +546,14 @@ func (ds *SlsDatasource) BuildTimingGraph(logs []map[string]string, xcol string,
 		}
 	}
 	var frameLen int
-	for k, v := range fieldMap {
-		if len(v) > 0 {
-			if frameLen == 0 {
-				frameLen = len(v)
-			}
-			if len(v) == frameLen {
-				frame.Fields = append(frame.Fields, data.NewField(k, nil, v))
-			}
+	for _, v := range fieldMap {
+		if len(v) > frameLen {
+			frameLen = len(v)
+		}
+	}
+	for _, v := range ycols {
+		if field, ok := fieldMap[v]; ok && len(field) == frameLen {
+			frame.Fields = append(frame.Fields, data.NewField(v, nil, field))
 		}
 	}
 	if len(times) == frameLen {
@@ -556,7 +562,7 @@ func (ds *SlsDatasource) BuildTimingGraph(logs []map[string]string, xcol string,
 	*frames = append(*frames, frame)
 }
 
-func (ds *SlsDatasource) BuildTable(logs []map[string]string, xcol string, ycols []string, frames *data.Frames) {
+func (ds *SlsDatasource) BuildTable(logs []map[string]string, xcol string, ycols []string, keys []string, frames *data.Frames) {
 	frame := data.NewFrame("response1")
 
 	fieldMap := make(map[string][]string)
@@ -567,9 +573,13 @@ func (ds *SlsDatasource) BuildTable(logs []map[string]string, xcol string, ycols
 
 	if len(ycols) == 1 && ycols[0] == "" && len(logs) > 0 {
 		ycols = ycols[:0]
-		for k := range logs[0] {
-			if k != "__time__" && k != "__source__" {
-				ycols = append(ycols, k)
+		if len(keys) > 0 {
+			ycols = append(ycols, keys...)
+		} else {
+			for k := range logs[0] {
+				if k != "__time__" && k != "__source__" {
+					ycols = append(ycols, k)
+				}
 			}
 		}
 	}

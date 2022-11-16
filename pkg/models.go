@@ -30,6 +30,13 @@ type Result struct {
 	dataResponse backend.DataResponse
 }
 
+// Contents {"keys":["c","c1","t"],"terms":[["*",""]],"limited":"100"}
+type Contents struct {
+	Keys    []string   `json:"keys"`
+	Terms   [][]string `json:"terms"`
+	Limited string     `json:"limited"`
+}
+
 func LoadSettings(ctx backend.PluginContext) (*LogSource, error) {
 	model := &LogSource{}
 

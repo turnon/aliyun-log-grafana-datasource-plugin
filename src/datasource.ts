@@ -45,7 +45,7 @@ export class SLSDataSource extends DataSourceWithBackend<SLSQuery, SLSDataSource
     return getBackendSrv()
       .post('/api/ds/query', data)
       .then((response) => {
-        return response.results.A.frames[0].data.values[0];
+        return response.results.A.frames[0].data.values;
       })
       .then(mapToTextValue);
   }
@@ -149,6 +149,11 @@ function responseToDataQueryResponse(response: DataQueryResponse): DataQueryResp
 }
 
 export function mapToTextValue(result: any) {
+  if (Array.isArray(result) && result.length === 2) {
+    return _.map(result[0], (d, i) => {
+      return { text: d, value: result[1][i] };
+    });
+  }
   return _.map(result, (d, i) => {
     if (d && d.text && d.value) {
       return { text: d.text, value: d.value };
