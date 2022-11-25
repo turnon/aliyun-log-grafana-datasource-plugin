@@ -352,7 +352,7 @@ func (ds *SlsDatasource) BuildFlowGraph(logs []map[string]string, xcol string, y
 	if len(ycols) < 2 {
 		return
 	}
-	frame := data.NewFrame("response")
+	frame := data.NewFrame("")
 	fieldMap := make(map[string]map[string]float64)
 	timeSet := make(map[string]bool)
 	labelSet := make(map[string]bool)
@@ -518,7 +518,7 @@ func (ds *SlsDatasource) BuildPieGraph(logs []map[string]string, ycols []string,
 
 func (ds *SlsDatasource) BuildTimingGraph(logs []map[string]string, xcol string, ycols []string, keys []string, frames *data.Frames) {
 	ds.SortLogs(logs, xcol)
-	frame := data.NewFrame("response1")
+	frame := data.NewFrame("")
 	fieldMap := make(map[string][]float64)
 	var times []time.Time
 	if len(ycols) == 1 && ycols[0] == "" && len(keys) > 0 {
@@ -563,7 +563,7 @@ func (ds *SlsDatasource) BuildTimingGraph(logs []map[string]string, xcol string,
 }
 
 func (ds *SlsDatasource) BuildTable(logs []map[string]string, xcol string, ycols []string, keys []string, frames *data.Frames) {
-	frame := data.NewFrame("response1")
+	frame := data.NewFrame("response")
 
 	fieldMap := make(map[string][]string)
 
