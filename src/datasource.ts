@@ -154,7 +154,7 @@ export function mapToTextValue(result: any) {
       return { text: d, value: result[1][i] };
     });
   }
-  return _.map(result, (d, i) => {
+  return _.map(result[0], (d, i) => {
     if (d && d.text && d.value) {
       return { text: d.text, value: d.value };
     } else if (_.isObject(d)) {
