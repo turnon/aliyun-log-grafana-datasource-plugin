@@ -11,7 +11,7 @@ export interface SLSQuery extends DataQuery {
 export const defaultQuery: Partial<SLSQuery> = {
   query: '* | select count(*) as c, __time__-__time__%60 as t group by t',
   xcol: 't',
-  ycol: 'c',
+  ycol: '',
   logsPerPage: 100,
   currentPage: 1,
 };

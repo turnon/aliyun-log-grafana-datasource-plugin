@@ -551,13 +551,13 @@ func (ds *SlsDatasource) BuildTimingGraph(logs []map[string]string, xcol string,
 			frameLen = len(v)
 		}
 	}
+	if len(times) == frameLen {
+		frame.Fields = append(frame.Fields, data.NewField("time", nil, times))
+	}
 	for _, v := range ycols {
 		if field, ok := fieldMap[v]; ok && len(field) == frameLen {
 			frame.Fields = append(frame.Fields, data.NewField(v, nil, field))
 		}
-	}
-	if len(times) == frameLen {
-		frame.Fields = append(frame.Fields, data.NewField("time", nil, times))
 	}
 	*frames = append(*frames, frame)
 }

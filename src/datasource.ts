@@ -184,7 +184,7 @@ export function replaceQueryParameters(q: SLSQuery|string, options: DataQueryReq
       if (typeof value === 'object' && (variable.multi || variable.includeAll)) {
         const a: string[] = [];
         value.forEach(function (v: string) {
-          if (variable.name === variable.label || variable.description.indexOf('field_search') >= 0) {
+          if (variable.name === variable.label || (variable.description && variable.description.indexOf('field_search') >= 0)) {
             a.push('"' + variable.name + '":"' + v + '"');
           } else {
             a.push(v);
