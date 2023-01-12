@@ -290,7 +290,7 @@ func (ds *SlsDatasource) QueryLogs(ch chan Result, query backend.DataQuery, clie
 	}
 	keys := c.Keys
 
-	queryInfo.Ycol = strings.Replace(queryInfo.Ycol, " ", "", -1)
+	//queryInfo.Ycol = strings.Replace(queryInfo.Ycol, " ", "", -1)
 	isFlowGraph := strings.Contains(queryInfo.Ycol, "#:#")
 	if isFlowGraph {
 		ycols = strings.Split(queryInfo.Ycol, "#:#")
@@ -356,7 +356,11 @@ func (ds *SlsDatasource) BuildFlowGraph(logs []map[string]string, xcol string, y
 	fieldMap := make(map[string]map[string]float64)
 	timeSet := make(map[string]bool)
 	labelSet := make(map[string]bool)
+	var labelArr []string
 	for _, alog := range logs {
+		if !labelSet[alog[ycols[0]]] {
+			labelArr = append(labelArr, alog[ycols[0]])
+		}
 		timeSet[alog[xcol]] = true
 		labelSet[alog[ycols[0]]] = true
 	}
@@ -396,7 +400,8 @@ func (ds *SlsDatasource) BuildFlowGraph(logs []map[string]string, xcol string, y
 		}
 	}
 	var frameLen int
-	for k, v := range fieldMap {
+	for _, k := range labelArr {
+		v := fieldMap[k]
 		if len(v) > 0 {
 			if frameLen == 0 {
 				frameLen = len(v)
@@ -412,7 +417,7 @@ func (ds *SlsDatasource) BuildFlowGraph(logs []map[string]string, xcol string, y
 		times = append(times, toTime(k))
 	}
 	if len(times) == frameLen {
-		frame.Fields = append(frame.Fields, data.NewField("time", nil, times))
+		frame.Fields = append([]*data.Field{data.NewField("time", nil, times)}, frame.Fields...)
 	}
 
 	*frames = append(*frames, frame)
